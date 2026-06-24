@@ -6,6 +6,13 @@ import {
   Map as MapIcon, Library, ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { useState } from "react";
 import heroBg from "@/assets/hero-bg.jpg";
 import echoRome from "@/assets/echo-rome.jpg";
 import echoLondon from "@/assets/echo-london.jpg";
@@ -231,6 +238,19 @@ function MockField({ icon, label, value }: { icon: React.ReactNode; label: strin
 /* ---------- Try Demo ---------- */
 function TryDemo() {
   const checks = ["Pick a place", "Choose an experience", "Generate and listen"];
+  const [location, setLocation] = useState("");
+  const [length, setLength] = useState("short");
+  const [experience, setExperience] = useState("story");
+  const [language, setLanguage] = useState("english");
+
+  const handleUseMyLocation = () => {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => setLocation(`${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}`),
+      () => {},
+    );
+  };
+
   return (
     <section className="bg-primary-soft py-16 md:py-24">
       <div className="mx-auto grid max-w-7xl gap-10 px-4 sm:px-6 md:grid-cols-2 md:items-center">
@@ -248,36 +268,88 @@ function TryDemo() {
           </ul>
           <Button size="lg" className="mt-7 rounded-full px-6">Try the Demo</Button>
         </div>
-        <div className="mx-auto w-full max-w-md rounded-3xl border border-border bg-card p-6 shadow-[var(--shadow-card)]">
+        <form
+          onSubmit={(e) => e.preventDefault()}
+          className="mx-auto w-full max-w-md rounded-3xl border border-border bg-card p-6 shadow-[var(--shadow-card)]"
+        >
           <h3 className="mb-5 text-center text-xl font-bold">Try the Demo</h3>
-          <div className="space-y-4">
+          <div className="space-y-5">
             <FormField label="Location">
-              <div className="flex items-center gap-2 rounded-xl border border-border bg-background px-3 py-2.5 text-sm">
-                <MapPin className="h-4 w-4 text-primary" />
-                <span className="flex-1 truncate">Tsesarin 20, Kiryat Yam, Israel</span>
-                <span className="rounded-md bg-primary px-2 py-1 text-[10px] font-bold text-primary-foreground">Use My Location</span>
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <div className="relative flex-1">
+                  <MapPin className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-primary" />
+                  <Input
+                    type="text"
+                    value={location}
+                    onChange={(e) => setLocation(e.target.value)}
+                    placeholder="Enter an address or place"
+                    className="rounded-xl bg-background pl-9"
+                  />
+                </div>
+                <Button
+                  type="button"
+                  onClick={handleUseMyLocation}
+                  className="rounded-xl whitespace-nowrap"
+                >
+                  Use My Location
+                </Button>
               </div>
             </FormField>
-            <div className="grid grid-cols-2 gap-3">
-              <FormField label="Story Length">
-                <div className="flex rounded-xl border border-border bg-background p-1 text-xs font-semibold">
-                  <span className="flex-1 rounded-lg bg-primary py-1.5 text-center text-primary-foreground">Short</span>
-                  <span className="flex-1 py-1.5 text-center text-muted-foreground">Med</span>
-                  <span className="flex-1 py-1.5 text-center text-muted-foreground">Long</span>
-                </div>
-              </FormField>
-              <FormField label="Story Style">
-                <div className="rounded-xl border border-border bg-background px-3 py-2.5 text-sm font-medium">Historical</div>
-              </FormField>
-            </div>
-            <FormField label="Language">
-              <div className="rounded-xl border border-border bg-background px-3 py-2.5 text-sm font-medium">English</div>
+
+            <FormField label="Story Length">
+              <RadioGroup
+                value={length}
+                onValueChange={setLength}
+                className="flex flex-wrap gap-4"
+              >
+                {[
+                  { v: "short", l: "Short" },
+                  { v: "medium", l: "Medium" },
+                  { v: "long", l: "Long" },
+                ].map((o) => (
+                  <div key={o.v} className="flex items-center gap-2">
+                    <RadioGroupItem id={`len-${o.v}`} value={o.v} />
+                    <Label htmlFor={`len-${o.v}`} className="text-sm font-medium">{o.l}</Label>
+                  </div>
+                ))}
+              </RadioGroup>
             </FormField>
-            <Button className="mt-2 w-full rounded-xl py-6 text-base gap-2">
+
+            <FormField label="Experience">
+              <Select value={experience} onValueChange={setExperience}>
+                <SelectTrigger className="rounded-xl bg-background">
+                  <SelectValue placeholder="Select an experience" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="story">Story</SelectItem>
+                  <SelectItem value="historical">Historical</SelectItem>
+                  <SelectItem value="guide">Guide</SelectItem>
+                  <SelectItem value="urban-legend">Urban Legend</SelectItem>
+                </SelectContent>
+              </Select>
+            </FormField>
+
+            <FormField label="Language">
+              <Select value={language} onValueChange={setLanguage}>
+                <SelectTrigger className="rounded-xl bg-background">
+                  <SelectValue placeholder="Select a language" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="english">English</SelectItem>
+                  <SelectItem value="german">German</SelectItem>
+                  <SelectItem value="hebrew">Hebrew</SelectItem>
+                  <SelectItem value="french">French</SelectItem>
+                  <SelectItem value="russian">Russian</SelectItem>
+                  <SelectItem value="spanish">Spanish</SelectItem>
+                </SelectContent>
+              </Select>
+            </FormField>
+
+            <Button type="submit" className="mt-2 w-full rounded-xl py-6 text-base gap-2">
               <Sparkles className="h-4 w-4" /> Generate Story
             </Button>
           </div>
-        </div>
+        </form>
       </div>
     </section>
   );
