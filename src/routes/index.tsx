@@ -53,7 +53,6 @@ function Index() {
     </div>
   );
 }
-}
 
 /* ---------- Hero ---------- */
 function Hero() {
