@@ -1,10 +1,21 @@
-<!-- LOVABLE:BEGIN -->
-> [!IMPORTANT]
-> This project is connected to [Lovable](https://lovable.dev). Avoid rewriting
-> published git history — force pushing, or rebasing/amending/squashing commits
-> that are already pushed — as it rewrites history on Lovable's side and the
-> user will likely lose their project history.
->
-> Commits you push to the connected branch sync back to Lovable and show up in
-> the editor, so keep the branch in a working state.
-<!-- LOVABLE:END -->
+# Codex Notes
+
+## Project snapshot
+
+- Stack: TanStack Start, React 19, TypeScript, Vite, Tailwind CSS 4.
+- Package manager / lockfile: Bun (`bun.lock`).
+- UI primitives live under `src/components/ui`.
+
+## Working agreement
+
+- Keep routing inside `src/routes`; this app uses TanStack file-based routing, not Next.js-style `pages` or `app`.
+- Do not manually edit `src/routeTree.gen.ts`; treat it as generated output.
+- Prefer small, localized changes that match the existing component and styling patterns.
+
+## Useful commands
+
+- Install deps: `bun install`
+- Start dev server: `bun run dev`
+- Build: `bun run build`
+- Lint: `bun run lint`
+- Format: `bun run format`
