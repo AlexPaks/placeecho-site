@@ -2,6 +2,8 @@ import { Link } from "@tanstack/react-router";
 import { BookOpen, Globe, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+const TRY_DEMO_HREF = "/#try-demo";
+
 export function Logo({ size = 36 }: { size?: number }) {
   return (
     <Link to="/" className="flex items-center gap-2.5">
@@ -50,7 +52,7 @@ export function Header() {
             <Globe className="h-4 w-4" /> EN
           </button>
           <Button asChild className="rounded-full">
-            <Link to="/">Try Demo</Link>
+            <a href={TRY_DEMO_HREF}>Try Demo</a>
           </Button>
           <button className="grid h-9 w-9 place-items-center rounded-full border border-border md:hidden">
             <Menu className="h-4 w-4" />
@@ -63,21 +65,30 @@ export function Header() {
 
 export function Footer() {
   const cols: { h: string; links: { label: string; to: string }[] }[] = [
-    { h: "Product", links: [
-      { label: "Features", to: "/features" },
-      { label: "How It Works", to: "/features" },
-      { label: "Try Demo", to: "/" },
-    ]},
-    { h: "Company", links: [
-      { label: "About", to: "/about" },
-      { label: "Contact", to: "/contact" },
-      { label: "Press Kit", to: "/about" },
-    ]},
-    { h: "Support", links: [
-      { label: "FAQ", to: "/faq" },
-      { label: "Privacy Policy", to: "/faq" },
-      { label: "Terms of Use", to: "/faq" },
-    ]},
+    {
+      h: "Product",
+      links: [
+        { label: "Features", to: "/features" },
+        { label: "How It Works", to: "/features" },
+        { label: "Try Demo", to: TRY_DEMO_HREF },
+      ],
+    },
+    {
+      h: "Company",
+      links: [
+        { label: "About", to: "/about" },
+        { label: "Contact", to: "/contact" },
+        { label: "Press Kit", to: "/about" },
+      ],
+    },
+    {
+      h: "Support",
+      links: [
+        { label: "FAQ", to: "/faq" },
+        { label: "Privacy Policy", to: "/faq" },
+        { label: "Terms of Use", to: "/faq" },
+      ],
+    },
   ];
   return (
     <footer className="border-t border-border bg-card">
@@ -88,9 +99,15 @@ export function Footer() {
             AI-powered stories from the places that surround you.
           </p>
           <div className="mt-4 flex gap-3 text-muted-foreground">
-            <span className="grid h-8 w-8 place-items-center rounded-full border border-border">f</span>
-            <span className="grid h-8 w-8 place-items-center rounded-full border border-border">in</span>
-            <span className="grid h-8 w-8 place-items-center rounded-full border border-border">t</span>
+            <span className="grid h-8 w-8 place-items-center rounded-full border border-border">
+              f
+            </span>
+            <span className="grid h-8 w-8 place-items-center rounded-full border border-border">
+              in
+            </span>
+            <span className="grid h-8 w-8 place-items-center rounded-full border border-border">
+              t
+            </span>
           </div>
         </div>
         {cols.map((c) => (
@@ -99,7 +116,9 @@ export function Footer() {
             <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
               {c.links.map((l) => (
                 <li key={l.label}>
-                  <Link to={l.to} className="hover:text-foreground">{l.label}</Link>
+                  <Link to={l.to} className="hover:text-foreground">
+                    {l.label}
+                  </Link>
                 </li>
               ))}
             </ul>

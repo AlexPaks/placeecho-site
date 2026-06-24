@@ -1,33 +1,73 @@
 import { createFileRoute } from "@tanstack/react-router";
 import {
-  MapPin, Globe, Camera, AudioLines, Languages, Play, BookOpen,
-  CheckCircle2, BookText, Landmark, Compass, Ghost, Bell, Menu,
-  Sparkles, Headphones, ShieldCheck, Users, Lightbulb, Star, Heart,
-  Map as MapIcon, Library, ChevronRight,
+  MapPin,
+  Globe,
+  Camera,
+  AudioLines,
+  Languages,
+  Play,
+  BookOpen,
+  Check,
+  BookText,
+  Landmark,
+  Compass,
+  Ghost,
+  Bell,
+  Menu,
+  Sparkles,
+  Headphones,
+  ShieldCheck,
+  Users,
+  Lightbulb,
+  Star,
+  Heart,
+  Map as MapIcon,
+  Library,
+  ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Header, Footer } from "@/components/site-chrome";
-import { Input } from "@/components/ui/input";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useState } from "react";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { useEffect, useRef, useState } from "react";
+import { cn } from "@/lib/utils";
 import heroBg from "@/assets/hero-bg.jpg";
 import echoRome from "@/assets/echo-rome.jpg";
 import echoLondon from "@/assets/echo-london.jpg";
 import echoKyoto from "@/assets/echo-kyoto.jpg";
 import echoParis from "@/assets/echo-paris.jpg";
-import aboutImg from "@/assets/about-place.jpg";
+import createScreen from "@/assets/create-screen.jpeg";
+import chooseExperienceScreen from "@/assets/choose-experience-screen.jpeg";
+import heroEgypt from "@/assets/hero-egypt.png";
+import locationPickerScreen from "@/assets/location-picker-screen.jpeg";
+import myStoriesScreen from "@/assets/my-stories-screen.jpeg";
+import placeechoPostcard from "@/assets/placeecho-postcard.png";
+import storyAudioScreen from "@/assets/story-audio-screen.jpeg";
+
+const APP_URL = "https://app.placeecho.io";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "PlaceEcho — Every Place Has More Than One Story" },
-      { name: "description", content: "PlaceEcho turns any location into a personalized AI-powered audio experience: immersive stories, historical journeys, local guides, and urban legends." },
+      {
+        name: "description",
+        content:
+          "PlaceEcho turns any location into a personalized AI-powered audio experience: immersive stories, historical journeys, local guides, and urban legends.",
+      },
       { property: "og:title", content: "PlaceEcho — Every Place Has More Than One Story" },
-      { property: "og:description", content: "AI-powered place stories with natural audio in multiple languages." },
+      {
+        property: "og:description",
+        content: "AI-powered place stories with natural audio in multiple languages.",
+      },
       { property: "og:type", content: "website" },
     ],
   }),
@@ -57,11 +97,36 @@ function Index() {
 /* ---------- Hero ---------- */
 function Hero() {
   const features = [
-    { icon: MapPin, label: "Current Location" },
-    { icon: Globe, label: "Anywhere in the World" },
-    { icon: Camera, label: "Photo Discovery" },
-    { icon: AudioLines, label: "AI Narration" },
-    { icon: Languages, label: "Multiple Languages" },
+    {
+      icon: MapPin,
+      label: "Current Location",
+      tint: "bg-primary-soft",
+      iconClass: "text-primary",
+    },
+    {
+      icon: Globe,
+      label: "Anywhere in the World",
+      tint: "bg-[oklch(0.95_0.04_220)]",
+      iconClass: "text-[oklch(0.48_0.14_230)]",
+    },
+    {
+      icon: Camera,
+      label: "Photo Discovery",
+      tint: "bg-[oklch(0.96_0.04_160)]",
+      iconClass: "text-[oklch(0.45_0.13_165)]",
+    },
+    {
+      icon: AudioLines,
+      label: "AI Narration",
+      tint: "bg-[oklch(0.96_0.04_30)]",
+      iconClass: "text-[oklch(0.55_0.16_35)]",
+    },
+    {
+      icon: Languages,
+      label: "Multiple Languages",
+      tint: "bg-[oklch(0.96_0.04_300)]",
+      iconClass: "text-[oklch(0.48_0.16_300)]",
+    },
   ];
   return (
     <section className="relative overflow-hidden">
@@ -74,43 +139,68 @@ function Hero() {
           backgroundPosition: "center right",
         }}
       />
-      <div aria-hidden className="pointer-events-none absolute inset-0 bg-gradient-to-r from-background via-background/95 to-background/40" />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 bg-gradient-to-r from-background via-background/95 to-background/40"
+      />
       <div className="relative mx-auto grid max-w-7xl gap-12 px-4 py-16 sm:px-6 md:py-24 lg:grid-cols-2 lg:items-center">
         <div>
           <span className="inline-flex items-center gap-2 rounded-full bg-accent-soft px-3 py-1 text-xs font-semibold text-accent-foreground">
             <Sparkles className="h-3.5 w-3.5" /> AI-powered place experiences
           </span>
           <h1 className="mt-5 text-4xl font-bold leading-[1.05] sm:text-5xl md:text-6xl">
-            Every Place Has<br />
+            Every Place Has
+            <br />
             More Than <span className="text-primary italic">One Story</span>
           </h1>
           <p className="mt-5 max-w-xl text-base text-muted-foreground sm:text-lg">
-            PlaceEcho transforms any location into a personalized AI-powered
-            experience: <span className="text-foreground/80 font-medium">immersive stories</span>,{" "}
-            <span className="text-foreground/80 font-medium">historical journeys</span>, local guides, and
-            urban legends — with natural audio in multiple languages.
+            PlaceEcho transforms any location into a personalized AI-powered experience:{" "}
+            <span className="text-foreground/80 font-medium">immersive stories</span>,{" "}
+            <span className="text-foreground/80 font-medium">historical journeys</span>, local
+            guides, and urban legends — with natural audio in multiple languages.
           </p>
           <div className="mt-7 flex flex-wrap gap-3">
-            <Button size="lg" className="rounded-full px-6 shadow-[var(--shadow-card)]">
-              Try PlaceEcho Free
+            <Button asChild size="lg" className="rounded-full px-6 shadow-[var(--shadow-card)]">
+              <a href={APP_URL}>Try PlaceEcho Free</a>
             </Button>
             <Button size="lg" variant="outline" className="rounded-full px-6 gap-2 bg-card">
               <Play className="h-4 w-4 fill-primary text-primary" /> Watch Demo
             </Button>
           </div>
           <ul className="mt-10 grid grid-cols-3 gap-4 sm:grid-cols-5">
-            {features.map(({ icon: Icon, label }) => (
+            {features.map(({ icon: Icon, label, tint, iconClass }) => (
               <li key={label} className="flex flex-col items-center text-center">
-                <span className="grid h-11 w-11 place-items-center rounded-xl bg-card shadow-[var(--shadow-soft)]">
-                  <Icon className="h-5 w-5 text-primary" />
+                <span
+                  className={cn(
+                    "grid h-11 w-11 place-items-center rounded-xl shadow-[var(--shadow-soft)]",
+                    tint,
+                  )}
+                >
+                  <Icon className={cn("h-5 w-5", iconClass)} />
                 </span>
-                <span className="mt-2 text-xs font-medium text-muted-foreground leading-tight">{label}</span>
+                <span className="mt-2 text-xs font-medium text-muted-foreground leading-tight">
+                  {label}
+                </span>
               </li>
             ))}
           </ul>
         </div>
-        <div className="flex justify-center lg:justify-end">
-          <PhoneMock />
+        <div className="relative flex min-h-[560px] items-center justify-center lg:justify-start">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-y-8 left-[18%] right-0 hidden overflow-hidden rounded-[2.75rem] border border-white/60 bg-[oklch(0.98_0.02_85)] shadow-[0_30px_60px_-28px_rgba(107,72,38,0.22)] lg:block"
+          >
+            <img
+              src={heroEgypt}
+              alt=""
+              className="h-full w-full object-cover object-right-center opacity-85"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-background via-background/24 to-transparent" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_82%_42%,rgba(255,248,235,0.02),rgba(255,248,235,0.12)_34%,rgba(255,248,235,0.34)_66%,rgba(255,248,235,0.46)_100%)]" />
+          </div>
+          <div className="relative z-10 lg:ml-2">
+            <PhoneMock />
+          </div>
         </div>
       </div>
     </section>
@@ -122,56 +212,96 @@ function PhoneMock() {
   return (
     <div className="relative">
       <div className="absolute -inset-6 -z-10 rounded-[3rem] bg-gradient-to-br from-primary/20 via-accent/10 to-transparent blur-2xl" />
-      <div className="relative w-[300px] rounded-[2.5rem] border-[10px] border-foreground/90 bg-background p-3 shadow-[0_30px_60px_-20px_rgba(0,0,0,0.35)] sm:w-[340px]">
-        <div className="absolute left-1/2 top-2 z-10 h-5 w-24 -translate-x-1/2 rounded-full bg-foreground/90" />
-        <div className="overflow-hidden rounded-[1.8rem] bg-background">
-          <div className="flex items-center justify-between px-4 pt-6 pb-2 text-[10px] font-semibold">
-            <span>12:56</span>
-            <span className="flex gap-1 opacity-70">●●● ▮</span>
-          </div>
-          <div className="flex items-center justify-between px-4 py-2">
-            <div className="flex items-center gap-1.5">
-              <span className="grid h-6 w-6 place-items-center rounded-lg bg-primary text-primary-foreground"><BookOpen className="h-3 w-3" /></span>
-              <span className="text-xs font-bold">PlaceEcho</span>
+      <div className="relative w-[300px] overflow-hidden rounded-[2.5rem] border-[10px] border-foreground/90 bg-background shadow-[0_30px_60px_-20px_rgba(0,0,0,0.35)] sm:w-[340px]">
+        <img
+          src={createScreen}
+          alt="PlaceEcho mobile app create screen"
+          loading="eager"
+          className="block h-auto w-full"
+        />
+        <div className="hidden">
+          <div className="absolute left-1/2 top-2 z-10 h-5 w-24 -translate-x-1/2 rounded-full bg-foreground/90" />
+          <div className="overflow-hidden rounded-[1.8rem] bg-background">
+            <div className="flex items-center justify-between px-4 pt-6 pb-2 text-[10px] font-semibold">
+              <span>12:56</span>
+              <span className="flex gap-1 opacity-70">●●● ▮</span>
             </div>
-            <div className="flex items-center gap-1.5 text-foreground/60">
-              <Bell className="h-3.5 w-3.5" />
-              <span className="grid h-5 w-5 place-items-center rounded-full bg-primary text-[9px] font-bold text-primary-foreground">A</span>
-            </div>
-          </div>
-          <div className="space-y-2 px-3 pb-3">
-            <MockField icon={<MapPin className="h-3 w-3" />} label="CURRENT LOCATION" value="Mediterranean Courtyard" />
-            <div className="rounded-xl border border-border bg-card p-2.5">
-              <div className="flex items-center gap-1.5 text-[9px] font-bold uppercase text-primary">
-                <MapPin className="h-3 w-3" /> Pick location on map
+            <div className="flex items-center justify-between px-4 py-2">
+              <div className="flex items-center gap-1.5">
+                <span className="grid h-6 w-6 place-items-center rounded-lg bg-primary text-primary-foreground">
+                  <BookOpen className="h-3 w-3" />
+                </span>
+                <span className="text-xs font-bold">PlaceEcho</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-foreground/60">
+                <Bell className="h-3.5 w-3.5" />
+                <span className="grid h-5 w-5 place-items-center rounded-full bg-primary text-[9px] font-bold text-primary-foreground">
+                  A
+                </span>
               </div>
             </div>
-            <MockField icon={<Camera className="h-3 w-3" />} label="ADD A PHOTO" value="Helps pick richer details" />
-            <MockField icon={<Landmark className="h-3 w-3" />} label="CURRENT EXPERIENCE" value="Historical" />
-            <div className="grid place-items-center py-3">
-              <div className="grid h-20 w-20 place-items-center rounded-full bg-primary text-primary-foreground shadow-[0_10px_30px_-8px_rgba(220,120,40,0.55)]">
-                <div className="text-center">
-                  <Sparkles className="mx-auto h-4 w-4" />
-                  <div className="mt-0.5 text-[9px] font-bold leading-tight">Generate<br />story</div>
+            <div className="space-y-2 px-3 pb-3">
+              <MockField
+                icon={<MapPin className="h-3 w-3" />}
+                label="CURRENT LOCATION"
+                value="Mediterranean Courtyard"
+              />
+              <div className="rounded-xl border border-border bg-card p-2.5">
+                <div className="flex items-center gap-1.5 text-[9px] font-bold uppercase text-primary">
+                  <MapPin className="h-3 w-3" /> Pick location on map
+                </div>
+              </div>
+              <MockField
+                icon={<Camera className="h-3 w-3" />}
+                label="ADD A PHOTO"
+                value="Helps pick richer details"
+              />
+              <MockField
+                icon={<Landmark className="h-3 w-3" />}
+                label="CURRENT EXPERIENCE"
+                value="Historical"
+              />
+              <div className="grid place-items-center py-3">
+                <div className="grid h-20 w-20 place-items-center rounded-full bg-primary text-primary-foreground shadow-[0_10px_30px_-8px_rgba(220,120,40,0.55)]">
+                  <div className="text-center">
+                    <Sparkles className="mx-auto h-4 w-4" />
+                    <div className="mt-0.5 text-[9px] font-bold leading-tight">
+                      Generate
+                      <br />
+                      story
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="rounded-xl bg-secondary p-2">
+                <div className="mb-1.5 flex items-center justify-between text-[8px] font-bold uppercase">
+                  <span>Try these places</span>
+                  <span className="text-primary">See all ›</span>
+                </div>
+                <div className="flex gap-1.5">
+                  <div className="h-12 flex-1 rounded-lg bg-gradient-to-br from-primary/70 to-primary" />
+                  <div className="h-12 flex-1 rounded-lg bg-gradient-to-br from-accent/70 to-accent" />
                 </div>
               </div>
             </div>
-            <div className="rounded-xl bg-secondary p-2">
-              <div className="mb-1.5 flex items-center justify-between text-[8px] font-bold uppercase">
-                <span>Try these places</span>
-                <span className="text-primary">See all ›</span>
-              </div>
-              <div className="flex gap-1.5">
-                <div className="h-12 flex-1 rounded-lg bg-gradient-to-br from-primary/70 to-primary" />
-                <div className="h-12 flex-1 rounded-lg bg-gradient-to-br from-accent/70 to-accent" />
-              </div>
+            <div className="flex items-center justify-around border-t border-border py-2 text-[9px] font-medium text-foreground/60">
+              <span className="flex flex-col items-center gap-0.5 text-primary">
+                <Sparkles className="h-3.5 w-3.5" />
+                Create
+              </span>
+              <span className="flex flex-col items-center gap-0.5">
+                <BookOpen className="h-3.5 w-3.5" />
+                Stories
+              </span>
+              <span className="flex flex-col items-center gap-0.5">
+                <AudioLines className="h-3.5 w-3.5" />
+                Settings
+              </span>
+              <span className="flex flex-col items-center gap-0.5">
+                <Menu className="h-3.5 w-3.5" />
+                Menu
+              </span>
             </div>
-          </div>
-          <div className="flex items-center justify-around border-t border-border py-2 text-[9px] font-medium text-foreground/60">
-            <span className="flex flex-col items-center gap-0.5 text-primary"><Sparkles className="h-3.5 w-3.5" />Create</span>
-            <span className="flex flex-col items-center gap-0.5"><BookOpen className="h-3.5 w-3.5" />Stories</span>
-            <span className="flex flex-col items-center gap-0.5"><AudioLines className="h-3.5 w-3.5" />Settings</span>
-            <span className="flex flex-col items-center gap-0.5"><Menu className="h-3.5 w-3.5" />Menu</span>
           </div>
         </div>
       </div>
@@ -179,7 +309,15 @@ function PhoneMock() {
   );
 }
 
-function MockField({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+function MockField({
+  icon,
+  label,
+  value,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+}) {
   return (
     <div className="rounded-xl border border-border bg-card p-2.5">
       <div className="flex items-center gap-1.5 text-[9px] font-bold uppercase text-muted-foreground">
@@ -197,6 +335,14 @@ function TryDemo() {
   const [length, setLength] = useState("short");
   const [experience, setExperience] = useState("story");
   const [language, setLanguage] = useState("english");
+  const languageOptions = [
+    { value: "english", label: "English", flag: UKFlag },
+    { value: "german", label: "German", flag: GermanyFlag },
+    { value: "hebrew", label: "Hebrew", flag: IsraelFlag },
+    { value: "french", label: "French", flag: FranceFlag },
+    { value: "russian", label: "Russian", flag: RussiaFlag },
+    { value: "spanish", label: "Spanish", flag: SpainFlag },
+  ] as const;
 
   const handleUseMyLocation = () => {
     if (!navigator.geolocation) return;
@@ -207,7 +353,7 @@ function TryDemo() {
   };
 
   return (
-    <section className="bg-primary-soft py-16 md:py-24">
+    <section id="try-demo" className="scroll-mt-24 bg-primary-soft py-16 md:py-24">
       <div className="mx-auto grid max-w-7xl gap-10 px-4 sm:px-6 md:grid-cols-2 md:items-center">
         <div>
           <h2 className="text-3xl font-bold sm:text-4xl">Try the Demo</h2>
@@ -217,11 +363,16 @@ function TryDemo() {
           <ul className="mt-6 space-y-3">
             {checks.map((c) => (
               <li key={c} className="flex items-center gap-3 text-sm font-medium">
-                <CheckCircle2 className="h-5 w-5 text-accent" /> {c}
+                <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[oklch(0.68_0.18_152)] text-white shadow-[0_10px_24px_-10px_rgba(34,197,94,0.9)] ring-4 ring-[oklch(0.93_0.05_150)]">
+                  <Check className="h-4.5 w-4.5 stroke-[3]" />
+                </span>
+                <span>{c}</span>
               </li>
             ))}
           </ul>
-          <Button size="lg" className="mt-7 rounded-full px-6">Try the Demo</Button>
+          <Button asChild size="lg" className="mt-7 rounded-full px-6">
+            <a href="#try-demo">Try the Demo</a>
+          </Button>
         </div>
         <form
           onSubmit={(e) => e.preventDefault()}
@@ -251,53 +402,107 @@ function TryDemo() {
               </div>
             </FormField>
 
-            <FormField label="Story Length">
-              <RadioGroup
+            <FormField label="Length">
+              <ToggleGroup
+                type="single"
                 value={length}
-                onValueChange={setLength}
-                className="flex flex-wrap gap-4"
+                onValueChange={(value) => {
+                  if (value) setLength(value);
+                }}
+                variant="outline"
+                className="grid grid-cols-3 gap-2 rounded-2xl bg-background p-1"
+                aria-label="Story length"
               >
                 {[
                   { v: "short", l: "Short" },
                   { v: "medium", l: "Medium" },
                   { v: "long", l: "Long" },
                 ].map((o) => (
-                  <div key={o.v} className="flex items-center gap-2">
-                    <RadioGroupItem id={`len-${o.v}`} value={o.v} />
-                    <Label htmlFor={`len-${o.v}`} className="text-sm font-medium">{o.l}</Label>
-                  </div>
+                  <ToggleGroupItem
+                    key={o.v}
+                    value={o.v}
+                    className="h-11 rounded-xl border border-border bg-background px-4 text-sm font-semibold text-foreground shadow-none hover:bg-background hover:text-foreground data-[state=on]:border-primary data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-[var(--shadow-soft)]"
+                    aria-label={o.l}
+                  >
+                    {o.l}
+                  </ToggleGroupItem>
                 ))}
-              </RadioGroup>
+              </ToggleGroup>
             </FormField>
 
             <FormField label="Experience">
-              <Select value={experience} onValueChange={setExperience}>
-                <SelectTrigger className="rounded-xl bg-background">
-                  <SelectValue placeholder="Select an experience" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="story">Story</SelectItem>
-                  <SelectItem value="historical">Historical</SelectItem>
-                  <SelectItem value="guide">Guide</SelectItem>
-                  <SelectItem value="urban-legend">Urban Legend</SelectItem>
-                </SelectContent>
-              </Select>
+              <ToggleGroup
+                type="single"
+                value={experience}
+                onValueChange={(value) => {
+                  if (value) setExperience(value);
+                }}
+                variant="outline"
+                className="grid grid-cols-2 gap-3"
+                aria-label="Experience"
+              >
+                {[
+                  { v: "story", l: "Story", icon: BookText, tint: "bg-primary-soft text-primary" },
+                  {
+                    v: "historical",
+                    l: "Historical",
+                    icon: Landmark,
+                    tint: "bg-[oklch(0.97_0.04_85)] text-[oklch(0.48_0.16_72)]",
+                  },
+                  {
+                    v: "guide",
+                    l: "Guide",
+                    icon: Compass,
+                    tint: "bg-[oklch(0.96_0.04_230)] text-[oklch(0.45_0.13_235)]",
+                  },
+                  {
+                    v: "urban-legend",
+                    l: "Urban Legend",
+                    icon: Ghost,
+                    tint: "bg-[oklch(0.96_0.04_8)] text-[oklch(0.54_0.18_8)]",
+                  },
+                ].map((o) => (
+                  <ToggleGroupItem
+                    key={o.v}
+                    value={o.v}
+                    className="h-auto min-h-14 flex-col items-start justify-center rounded-2xl border border-border bg-card px-3 py-2.5 text-left text-foreground shadow-[var(--shadow-soft)] hover:bg-card hover:text-foreground data-[state=on]:border-primary data-[state=on]:bg-[oklch(0.98_0.03_72)] data-[state=on]:text-foreground data-[state=on]:shadow-[var(--shadow-card)]"
+                    aria-label={o.l}
+                  >
+                    <span className="flex w-full items-center gap-2.5">
+                      <span
+                        className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg ${o.tint}`}
+                      >
+                        <o.icon className="h-4 w-4" />
+                      </span>
+                      <span className="text-sm leading-none font-bold">{o.l}</span>
+                    </span>
+                  </ToggleGroupItem>
+                ))}
+              </ToggleGroup>
             </FormField>
 
             <FormField label="Language">
-              <Select value={language} onValueChange={setLanguage}>
-                <SelectTrigger className="rounded-xl bg-background">
-                  <SelectValue placeholder="Select a language" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="english">English</SelectItem>
-                  <SelectItem value="german">German</SelectItem>
-                  <SelectItem value="hebrew">Hebrew</SelectItem>
-                  <SelectItem value="french">French</SelectItem>
-                  <SelectItem value="russian">Russian</SelectItem>
-                  <SelectItem value="spanish">Spanish</SelectItem>
-                </SelectContent>
-              </Select>
+              <ToggleGroup
+                type="single"
+                value={language}
+                onValueChange={(value) => {
+                  if (value) setLanguage(value);
+                }}
+                className="grid grid-cols-3 gap-2"
+                aria-label="Language"
+              >
+                {languageOptions.map((option) => (
+                  <ToggleGroupItem
+                    key={option.value}
+                    value={option.value}
+                    className="h-12 justify-start rounded-xl border border-border bg-card px-3 text-left text-sm font-semibold text-foreground shadow-none hover:bg-card hover:text-foreground data-[state=on]:border-primary data-[state=on]:bg-[oklch(0.98_0.03_72)] data-[state=on]:text-foreground data-[state=on]:shadow-[var(--shadow-soft)]"
+                    aria-label={option.label}
+                  >
+                    <option.flag className="h-4 w-6 shrink-0 rounded-sm border border-border/60 shadow-none" />
+                    <span className="truncate">{option.label}</span>
+                  </ToggleGroupItem>
+                ))}
+              </ToggleGroup>
             </FormField>
 
             <Button type="submit" className="mt-2 w-full rounded-xl py-6 text-base gap-2">
@@ -320,50 +525,572 @@ function FormField({ label, children }: { label: string; children: React.ReactNo
 }
 
 /* ---------- Featured Echoes ---------- */
-const ECHOES = [
-  { title: "Rome Colosseum", mode: "Historical", img: echoRome, rating: 4.9, text: "Discover the real history behind one of the most iconic landmarks of ancient Rome.", tagColor: "bg-primary" },
-  { title: "Tower of London", mode: "Urban Legend", img: echoLondon, rating: 4.9, text: "The dark legends and mysterious tales that still whisper through the ancient walls.", tagColor: "bg-[oklch(0.55_0.2_290)]" },
-  { title: "Kyoto Temple", mode: "Guide", img: echoKyoto, rating: 4.9, text: "A complete guide to this beautiful temple and its cultural significance.", tagColor: "bg-accent" },
-  { title: "Eiffel Tower", mode: "Story", img: echoParis, rating: 4.7, text: "A romantic story inspired by the dreams, love, and ambition behind the tower.", tagColor: "bg-[oklch(0.6_0.18_25)]" },
+type EchoMode = "Story" | "Historical" | "Guide" | "Urban Legend";
+
+type Echo = {
+  title: string;
+  location: string;
+  mode: EchoMode;
+  img: string;
+  rating: number;
+  text: string;
+  tagColor: string;
+  focus: string;
+  listenScript: string;
+  paragraphs: string[];
+  highlights: string[];
+};
+
+const ECHO_MODE_META: Record<
+  EchoMode,
+  {
+    icon: typeof BookText;
+    badgeClass: string;
+    panelClass: string;
+    actionClass: string;
+    chips: string[];
+    description: string;
+  }
+> = {
+  Story: {
+    icon: BookText,
+    badgeClass: "bg-primary-soft text-primary",
+    panelClass: "from-primary-soft via-[oklch(0.98_0.03_72)] to-white",
+    actionClass: "bg-primary-soft text-primary",
+    chips: ["Mood-first", "Cinematic", "Character-led"],
+    description: "A more emotional, cinematic take designed to make the place feel alive.",
+  },
+  Historical: {
+    icon: Landmark,
+    badgeClass: "bg-[oklch(0.97_0.04_85)] text-[oklch(0.48_0.16_72)]",
+    panelClass: "from-[oklch(0.97_0.04_85)] via-[oklch(0.99_0.02_85)] to-white",
+    actionClass: "bg-[oklch(0.97_0.04_85)] text-[oklch(0.48_0.16_72)]",
+    chips: ["Verified context", "Timeline", "Real people"],
+    description: "Built around facts, chronology, and the forces that shaped the place.",
+  },
+  Guide: {
+    icon: Compass,
+    badgeClass: "bg-[oklch(0.96_0.04_230)] text-[oklch(0.45_0.13_235)]",
+    panelClass: "from-[oklch(0.96_0.04_230)] via-[oklch(0.99_0.02_230)] to-white",
+    actionClass: "bg-[oklch(0.96_0.04_230)] text-[oklch(0.45_0.13_235)]",
+    chips: ["Practical route", "What to notice", "Best moments"],
+    description: "Focused on movement, orientation, and details you can use on the spot.",
+  },
+  "Urban Legend": {
+    icon: Ghost,
+    badgeClass: "bg-[oklch(0.96_0.04_8)] text-[oklch(0.54_0.18_8)]",
+    panelClass: "from-[oklch(0.96_0.04_8)] via-[oklch(0.99_0.02_8)] to-white",
+    actionClass: "bg-[oklch(0.96_0.04_8)] text-[oklch(0.54_0.18_8)]",
+    chips: ["Rumor & folklore", "Uneasy mood", "After-dark energy"],
+    description: "A haunting version shaped by whispers, myth, and local imagination.",
+  },
+};
+
+const ECHOES: Echo[] = [
+  {
+    title: "Rome Colosseum",
+    location: "Rome, Italy",
+    mode: "Historical",
+    img: echoRome,
+    rating: 4.9,
+    tagColor: "bg-primary",
+    text: "Walk through emperors, spectacle, and the political machine hidden behind the arena.",
+    focus:
+      "This version explains who built it, why it mattered, and how power was staged in public.",
+    listenScript:
+      "You are standing before a monument built not only for entertainment, but for imperial messaging. The Colosseum rose in the first century under the Flavian emperors, on land reclaimed from Nero's private palace. Every seat, corridor, and spectacle was part of a larger story about order, authority, and the performance of Roman power.",
+    paragraphs: [
+      "The Colosseum was more than a stadium. It was a statement by the Flavian dynasty that Rome belonged again to the people after the excesses of Nero. By building a public amphitheater on top of private imperial land, the emperors turned architecture into politics.",
+      "Inside, the arena delivered carefully staged violence, engineering brilliance, and mass spectacle. Trapdoors, pulleys, and underground chambers helped produce dramatic scenes, while the seating plan itself mirrored Roman social hierarchy with astonishing precision.",
+      "A historical Echo focuses on verified context: dates, rulers, urban planning, and the way the monument reflected the values and contradictions of the empire. Instead of imagining a character's feelings, it helps you see the systems that shaped the place.",
+    ],
+    highlights: [
+      "Built under Vespasian and Titus",
+      "Flavian propaganda in stone",
+      "Arena as social hierarchy",
+    ],
+  },
+  {
+    title: "Tower of London",
+    location: "London, England",
+    mode: "Urban Legend",
+    img: echoLondon,
+    rating: 4.9,
+    tagColor: "bg-[oklch(0.55_0.2_290)]",
+    text: "Ravens, vanished princes, and corridors where rumor still clings to the stone.",
+    focus:
+      "This version leans into the whispers people remember long after the official facts fade.",
+    listenScript:
+      "At the Tower of London, history never arrives alone. It comes wrapped in raven wings, in the shadow of missing princes, in the uneasy feeling that some walls keep secrets on purpose. Whether the stories are true almost matters less than the fact that London still repeats them, generation after generation.",
+    paragraphs: [
+      "Some places are remembered for what happened there. The Tower is remembered just as strongly for what people fear may have happened there. That distinction is what gives an urban-legend Echo its charge.",
+      "The ravens are a perfect example. Their presence has been folded into a superstition that says the kingdom will fall if they ever leave. The story survives because it feels bigger than evidence; it turns a practical detail into a national omen.",
+      "A legend-driven Echo does not pretend rumor is documentation. Instead, it explores why certain myths endure, how atmosphere shapes memory, and why visitors still lower their voices in places where stories have never fully settled.",
+    ],
+    highlights: ["Raven superstition", "Princes in the Tower", "Fear, folklore, and memory"],
+  },
+  {
+    title: "Kyoto Temple",
+    location: "Kyoto, Japan",
+    mode: "Guide",
+    img: echoKyoto,
+    rating: 4.9,
+    tagColor: "bg-accent",
+    text: "A clear route through the temple grounds, with cues for where to pause and what to notice.",
+    focus: "This version acts like a calm local companion instead of a dramatic narrator.",
+    listenScript:
+      "Start slowly at the entrance and let the first courtyard reset your pace. Notice how the soundscape changes before the architecture does. As you move deeper into the grounds, watch for small transitions: stone to wood, open air to filtered shade, public path to reflective space. A guide Echo helps you experience those details in the right order.",
+    paragraphs: [
+      "A guide-style Echo is designed for movement. It doesn't just tell you what a place means; it helps you notice the sequence in which the place reveals itself. In Kyoto, that sequence often matters as much as the destination.",
+      "Rather than focusing on a dramatic arc, this mode points out practical details: where the best views open, when the grounds feel quieter, which architectural elements visitors often miss, and how to read the mood of each transition.",
+      "The result feels useful and grounded. You get cultural context, but it arrives attached to action: pause here, turn back for this view, look up at this beam, listen to the gravel underfoot. It is the most present-tense of the four experiences.",
+    ],
+    highlights: [
+      "Best route through the grounds",
+      "Details most visitors miss",
+      "On-the-spot orientation",
+    ],
+  },
+  {
+    title: "Eiffel Tower",
+    location: "Paris, France",
+    mode: "Story",
+    img: echoParis,
+    rating: 4.7,
+    tagColor: "bg-[oklch(0.6_0.18_25)]",
+    text: "A romantic, cinematic story about ambition, evening light, and the feeling of arriving in Paris.",
+    focus:
+      "This version is less about facts and more about atmosphere, emotion, and narrative flow.",
+    listenScript:
+      "By the time the tower catches the late light, Paris has already started turning into a story about arrival. Iron becomes lace against the sky, the river gathers reflection, and the whole structure feels less like a machine than a promise someone was daring the city to keep. In a story Echo, the place becomes a scene you can step into.",
+    paragraphs: [
+      "A story-mode Echo treats the place like a narrative stage. The goal is not just to inform you, but to carry you through a beginning, middle, and emotional payoff that fits the setting.",
+      "With the Eiffel Tower, that often means leaning into anticipation: the first glimpse between rooftops, the widening of the avenue, the shift from object to symbol. The structure becomes meaningful not only because it exists, but because of the feeling it produces in the person approaching it.",
+      "Compared with the historical or guide versions, story mode is freer, warmer, and more sensory. It emphasizes tone, image, and emotional momentum so the listener remembers not just what they learned, but how the place felt.",
+    ],
+    highlights: ["Emotional arc", "Sensory writing", "Place as a scene"],
+  },
+  {
+    title: "Forum at First Light",
+    location: "Rome, Italy",
+    mode: "Guide",
+    img: echoRome,
+    rating: 4.8,
+    tagColor: "bg-accent",
+    text: "A practical sunrise route through columns, fragments, and the best vantage points before the crowds.",
+    focus:
+      "This version is structured like a walking companion that helps you notice the right details in the right order.",
+    listenScript:
+      "Begin at the quieter edge of the Forum and let the space open slowly. In the early light, the ruins read less like isolated monuments and more like a connected civic landscape. A guide Echo helps you move through that landscape without losing the small details that make it memorable.",
+    paragraphs: [
+      "This Echo is designed around timing and movement. It assumes you want to understand the Forum while you are actually walking through it, not after the fact.",
+      "Instead of building drama, it tells you where to pause, when to turn for the wider view, and which layers of the ruins reveal the strongest contrast between republic, empire, and later reuse.",
+      "Guide mode works especially well here because the Forum can feel visually overwhelming. The story becomes easier to absorb when it arrives as orientation rather than information overload.",
+    ],
+    highlights: ["Sunrise timing", "Best sightlines", "Easy walking sequence"],
+  },
+  {
+    title: "Paris After the Lights",
+    location: "Paris, France",
+    mode: "Urban Legend",
+    img: echoParis,
+    rating: 4.7,
+    tagColor: "bg-[oklch(0.55_0.2_290)]",
+    text: "The tower becomes a stage for rumors, midnight encounters, and the stories people tell once the crowds thin out.",
+    focus: "This version turns a familiar landmark into a more mysterious nighttime mythscape.",
+    listenScript:
+      "When the lights begin to glitter, the Eiffel Tower stops behaving like a postcard and starts behaving like a witness. Every city makes myths out of its brightest places, and Paris is no exception. After dark, ordinary details gather a second life in gossip, memory, and chance encounters retold as fate.",
+    paragraphs: [
+      "Urban-legend mode asks a different question: not what a landmark officially means, but what people have projected onto it over time. Night is where those projections become more believable.",
+      "In this version, the tower is less an engineering achievement and more a magnet for stories of secret meetings, near-misses, superstitions, and the kind of romantic exaggeration Paris encourages so easily.",
+      "The result is more atmospheric than factual. It is meant to make the same setting feel slightly unfamiliar, as if the city has stepped half a pace into rumor.",
+    ],
+    highlights: ["Nighttime mythology", "Romantic rumor", "Icon turned into mystery"],
+  },
 ];
 
+function EchoCard({
+  echo,
+  onListen,
+  onRead,
+  expanded = false,
+}: {
+  echo: Echo;
+  onListen: (echo: Echo) => void;
+  onRead: (echo: Echo) => void;
+  expanded?: boolean;
+}) {
+  return (
+    <article className="group overflow-hidden rounded-3xl border border-border bg-card shadow-[var(--shadow-soft)] transition-shadow hover:shadow-[var(--shadow-card)]">
+      <div className={cn("relative overflow-hidden", expanded ? "aspect-[16/10]" : "aspect-[5/4]")}>
+        <img
+          src={echo.img}
+          alt={echo.title}
+          loading="lazy"
+          width={1024}
+          height={1024}
+          className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+        />
+        <span
+          className={`absolute left-3 bottom-3 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase text-primary-foreground ${echo.tagColor}`}
+        >
+          {echo.mode}
+        </span>
+      </div>
+      <div className="p-4">
+        <div className="flex items-center justify-between gap-3">
+          <h3 className="text-base font-bold">{echo.title}</h3>
+          <span className="flex shrink-0 items-center gap-1 text-xs font-semibold text-primary">
+            <Star className="h-3.5 w-3.5 fill-primary" /> {echo.rating}
+          </span>
+        </div>
+        <p className="mt-1 text-xs font-medium text-muted-foreground">{echo.location}</p>
+        <p
+          className={cn(
+            "mt-2 text-sm text-muted-foreground",
+            expanded ? "line-clamp-4" : "line-clamp-3",
+          )}
+        >
+          {echo.text}
+        </p>
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          {ECHO_MODE_META[echo.mode].chips.map((chip) => (
+            <span
+              key={chip}
+              className={cn(
+                "rounded-full px-2.5 py-1 text-[11px] font-semibold",
+                ECHO_MODE_META[echo.mode].badgeClass,
+              )}
+            >
+              {chip}
+            </span>
+          ))}
+        </div>
+        <div className={cn("mt-3 rounded-2xl p-3", ECHO_MODE_META[echo.mode].actionClass)}>
+          <div className="text-[11px] font-bold uppercase tracking-[0.2em] opacity-80">
+            Why this feels different
+          </div>
+          <p className="mt-1 text-xs leading-relaxed opacity-90">{echo.focus}</p>
+        </div>
+        <div className="mt-4 flex gap-2">
+          <button
+            type="button"
+            onClick={() => onListen(echo)}
+            className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-primary-soft py-2 text-xs font-semibold text-primary hover:bg-primary/15"
+          >
+            <Play className="h-3.5 w-3.5 fill-primary" /> Listen
+          </button>
+          <button
+            type="button"
+            onClick={() => onRead(echo)}
+            className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-border py-2 text-xs font-semibold hover:bg-secondary"
+          >
+            <BookOpen className="h-3.5 w-3.5" /> Read Story
+          </button>
+        </div>
+      </div>
+    </article>
+  );
+}
+
 function FeaturedEchoes() {
+  const [activeEcho, setActiveEcho] = useState<Echo | null>(null);
+  const [previewMode, setPreviewMode] = useState<"listen" | "read" | null>(null);
+  const [catalogOpen, setCatalogOpen] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const featuredEchoes = ECHOES.slice(0, 4);
+
+  function stopSpeaking() {
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+    }
+    utteranceRef.current = null;
+    setIsSpeaking(false);
+  }
+
+  function openPreview(echo: Echo, mode: "listen" | "read") {
+    stopSpeaking();
+    setCatalogOpen(false);
+    setActiveEcho(echo);
+    setPreviewMode(mode);
+  }
+
+  function handleDialogChange(open: boolean) {
+    if (open) return;
+    stopSpeaking();
+    setPreviewMode(null);
+    setActiveEcho(null);
+  }
+
+  function togglePreviewAudio() {
+    if (!activeEcho) return;
+
+    if (isSpeaking) {
+      stopSpeaking();
+      return;
+    }
+
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) {
+      return;
+    }
+
+    window.speechSynthesis.cancel();
+
+    const utterance = new SpeechSynthesisUtterance(activeEcho.listenScript);
+    utterance.rate = activeEcho.mode === "Guide" ? 1 : 0.94;
+    utterance.pitch = activeEcho.mode === "Urban Legend" ? 0.92 : 1;
+    utterance.onend = () => {
+      utteranceRef.current = null;
+      setIsSpeaking(false);
+    };
+    utterance.onerror = () => {
+      utteranceRef.current = null;
+      setIsSpeaking(false);
+    };
+
+    utteranceRef.current = utterance;
+    window.speechSynthesis.speak(utterance);
+    setIsSpeaking(true);
+  }
+
+  useEffect(() => {
+    if (previewMode === "listen") return;
+    stopSpeaking();
+  }, [previewMode]);
+
+  useEffect(
+    () => () => {
+      if (typeof window !== "undefined" && "speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+      }
+    },
+    [],
+  );
+
+  const activeMeta = activeEcho ? ECHO_MODE_META[activeEcho.mode] : null;
+
   return (
     <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 md:py-24">
       <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
         <div>
           <h2 className="text-3xl font-bold sm:text-4xl">Featured Echoes</h2>
-          <p className="mt-2 text-muted-foreground">Sample stories generated by PlaceEcho from amazing places around the world.</p>
+          <p className="mt-2 max-w-2xl text-muted-foreground">
+            Sample stories generated by PlaceEcho from amazing places around the world. Each card
+            below demonstrates a different experience mode, so the contrast is easy to feel.
+          </p>
         </div>
-        <Button variant="outline" className="rounded-full gap-1 bg-card">See all Echoes <ChevronRight className="h-4 w-4" /></Button>
+        <Button
+          type="button"
+          variant="outline"
+          className="rounded-full gap-1 bg-card"
+          onClick={() => setCatalogOpen(true)}
+        >
+          See all Echoes <ChevronRight className="h-4 w-4" />
+        </Button>
       </div>
       <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-        {ECHOES.map((e) => (
-          <article key={e.title} className="group overflow-hidden rounded-3xl border border-border bg-card shadow-[var(--shadow-soft)] transition-shadow hover:shadow-[var(--shadow-card)]">
-            <div className="relative aspect-[5/4] overflow-hidden">
-              <img src={e.img} alt={e.title} loading="lazy" width={1024} height={1024} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" />
-              <span className={`absolute left-3 bottom-3 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase text-primary-foreground ${e.tagColor}`}>{e.mode}</span>
-            </div>
-            <div className="p-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-base font-bold">{e.title}</h3>
-                <span className="flex items-center gap-1 text-xs font-semibold text-primary">
-                  <Star className="h-3.5 w-3.5 fill-primary" /> {e.rating}
-                </span>
-              </div>
-              <p className="mt-2 text-sm text-muted-foreground line-clamp-3">{e.text}</p>
-              <div className="mt-4 flex gap-2">
-                <button className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-primary-soft py-2 text-xs font-semibold text-primary hover:bg-primary/15">
-                  <Play className="h-3.5 w-3.5 fill-primary" /> Listen
-                </button>
-                <button className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-border py-2 text-xs font-semibold hover:bg-secondary">
-                  <BookOpen className="h-3.5 w-3.5" /> Read Story
-                </button>
-              </div>
-            </div>
-          </article>
+        {featuredEchoes.map((e) => (
+          <EchoCard
+            key={e.title}
+            echo={e}
+            onListen={(echo) => openPreview(echo, "listen")}
+            onRead={(echo) => openPreview(echo, "read")}
+          />
         ))}
       </div>
+      <Dialog open={catalogOpen} onOpenChange={setCatalogOpen}>
+        <DialogContent className="max-h-[90vh] overflow-hidden border-0 p-0 sm:max-w-6xl">
+          <div className="overflow-hidden rounded-[1.75rem] bg-card">
+            <div className="border-b border-border bg-secondary/40 p-6 sm:p-8">
+              <DialogHeader className="space-y-3 text-left">
+                <DialogTitle className="text-2xl sm:text-3xl">All Echoes</DialogTitle>
+                <DialogDescription className="max-w-3xl text-sm leading-relaxed text-muted-foreground">
+                  Explore a broader PlaceEcho catalog with different tones, structures, and
+                  listening styles. Open any Echo to hear a preview or read the full sample story.
+                </DialogDescription>
+              </DialogHeader>
+            </div>
+            <div className="max-h-[calc(90vh-9rem)] overflow-y-auto p-6 sm:p-8">
+              <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+                {ECHOES.map((echo) => (
+                  <EchoCard
+                    key={echo.title}
+                    echo={echo}
+                    expanded
+                    onListen={(selectedEcho) => openPreview(selectedEcho, "listen")}
+                    onRead={(selectedEcho) => openPreview(selectedEcho, "read")}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={Boolean(activeEcho && previewMode)} onOpenChange={handleDialogChange}>
+        <DialogContent className="max-h-[90vh] overflow-hidden border-0 p-0 sm:max-w-4xl">
+          {activeEcho && activeMeta ? (
+            <div className="overflow-hidden rounded-[1.75rem] bg-card">
+              <div
+                className={cn(
+                  "border-b border-border bg-gradient-to-br p-6 sm:p-8",
+                  activeMeta.panelClass,
+                )}
+              >
+                <DialogHeader className="space-y-3 text-left">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <span
+                      className={cn(
+                        "inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-bold",
+                        activeMeta.badgeClass,
+                      )}
+                    >
+                      <activeMeta.icon className="h-3.5 w-3.5" />
+                      {activeEcho.mode}
+                    </span>
+                    <span className="text-sm font-medium text-muted-foreground">
+                      {activeEcho.location}
+                    </span>
+                  </div>
+                  <DialogTitle className="text-2xl sm:text-3xl">{activeEcho.title}</DialogTitle>
+                  <DialogDescription className="max-w-2xl text-sm leading-relaxed text-muted-foreground">
+                    {activeMeta.description}
+                  </DialogDescription>
+                </DialogHeader>
+              </div>
+
+              {previewMode === "listen" ? (
+                <div className="grid gap-6 p-6 sm:p-8 lg:grid-cols-[1.1fr_0.9fr]">
+                  <div>
+                    <div className="rounded-3xl border border-border bg-secondary/50 p-5">
+                      <div className="flex items-center justify-between gap-3">
+                        <div>
+                          <div className="text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground">
+                            Audio Preview
+                          </div>
+                          <p className="mt-1 text-sm text-muted-foreground">
+                            A short spoken sample of this experience style.
+                          </p>
+                        </div>
+                        <Button
+                          type="button"
+                          onClick={togglePreviewAudio}
+                          className="rounded-full px-5"
+                        >
+                          {isSpeaking ? (
+                            <>
+                              <AudioLines className="h-4 w-4" /> Stop Preview
+                            </>
+                          ) : (
+                            <>
+                              <Play className="h-4 w-4 fill-current" /> Play Preview
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                      <div className="mt-5 rounded-2xl bg-background p-4 text-sm leading-relaxed text-muted-foreground">
+                        "{activeEcho.listenScript}"
+                      </div>
+                      <p className="mt-3 text-xs text-muted-foreground">
+                        {typeof window !== "undefined" && "speechSynthesis" in window
+                          ? "This preview uses your browser voice to simulate PlaceEcho narration."
+                          : "Audio preview is shown as text here if browser voice playback is unavailable."}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="space-y-4">
+                    <div className="rounded-3xl border border-border bg-card p-5 shadow-[var(--shadow-soft)]">
+                      <div className="text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground">
+                        What stands out
+                      </div>
+                      <div className="mt-4 space-y-3">
+                        {activeEcho.highlights.map((item) => (
+                          <div key={item} className="flex items-start gap-3">
+                            <span
+                              className={cn(
+                                "mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full",
+                                activeMeta.badgeClass,
+                              )}
+                            >
+                              <Check className="h-3.5 w-3.5 stroke-[3]" />
+                            </span>
+                            <span className="text-sm">{item}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="rounded-3xl border border-border bg-card p-5 shadow-[var(--shadow-soft)]">
+                      <div className="text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground">
+                        Mode Signature
+                      </div>
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {activeMeta.chips.map((chip) => (
+                          <span
+                            key={chip}
+                            className={cn(
+                              "rounded-full px-3 py-1.5 text-xs font-semibold",
+                              activeMeta.badgeClass,
+                            )}
+                          >
+                            {chip}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="grid gap-6 p-6 sm:p-8 lg:grid-cols-[1.2fr_0.8fr]">
+                  <div className="space-y-4">
+                    {activeEcho.paragraphs.map((paragraph) => (
+                      <p key={paragraph} className="text-sm leading-7 text-foreground/90">
+                        {paragraph}
+                      </p>
+                    ))}
+                  </div>
+                  <div className="space-y-4">
+                    <div className="rounded-3xl border border-border bg-card p-5 shadow-[var(--shadow-soft)]">
+                      <div className="text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground">
+                        Experience DNA
+                      </div>
+                      <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                        {activeEcho.focus}
+                      </p>
+                    </div>
+                    <div className="rounded-3xl border border-border bg-card p-5 shadow-[var(--shadow-soft)]">
+                      <div className="text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground">
+                        Key Highlights
+                      </div>
+                      <div className="mt-4 space-y-3">
+                        {activeEcho.highlights.map((item) => (
+                          <div key={item} className="flex items-start gap-3">
+                            <span
+                              className={cn(
+                                "mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full",
+                                activeMeta.badgeClass,
+                              )}
+                            >
+                              <Check className="h-3.5 w-3.5 stroke-[3]" />
+                            </span>
+                            <span className="text-sm">{item}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <Button
+                      type="button"
+                      onClick={() => setPreviewMode("listen")}
+                      className="w-full rounded-2xl gap-2"
+                    >
+                      <Play className="h-4 w-4 fill-current" /> Switch to Listen Preview
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : null}
+        </DialogContent>
+      </Dialog>
     </section>
   );
 }
@@ -371,10 +1098,30 @@ function FeaturedEchoes() {
 /* ---------- Experience Modes ---------- */
 function ExperienceModes() {
   const modes = [
-    { icon: BookText, name: "Story", desc: "Immersive storytelling inspired by the atmosphere of the place.", tint: "bg-primary-soft text-primary" },
-    { icon: Landmark, name: "Historical", desc: "Explore real events, people and moments that shaped the location.", tint: "bg-accent-soft text-accent-foreground" },
-    { icon: Compass, name: "Guide", desc: "Practical and inspiring guides to understand what makes the place special.", tint: "bg-[oklch(0.94_0.04_240)] text-[oklch(0.45_0.15_240)]" },
-    { icon: Ghost, name: "Urban Legend", desc: "Myths, mysteries and local legends passed down through time.", tint: "bg-[oklch(0.94_0.04_300)] text-[oklch(0.45_0.18_300)]" },
+    {
+      icon: BookText,
+      name: "Story",
+      desc: "Immersive storytelling inspired by the atmosphere of the place.",
+      tint: "bg-primary-soft text-primary",
+    },
+    {
+      icon: Landmark,
+      name: "Historical",
+      desc: "Explore real events, people and moments that shaped the location.",
+      tint: "bg-accent-soft text-accent-foreground",
+    },
+    {
+      icon: Compass,
+      name: "Guide",
+      desc: "Practical and inspiring guides to understand what makes the place special.",
+      tint: "bg-[oklch(0.94_0.04_240)] text-[oklch(0.45_0.15_240)]",
+    },
+    {
+      icon: Ghost,
+      name: "Urban Legend",
+      desc: "Myths, mysteries and local legends passed down through time.",
+      tint: "bg-[oklch(0.94_0.04_300)] text-[oklch(0.45_0.18_300)]",
+    },
   ];
   return (
     <section className="bg-secondary/40 py-16 md:py-24">
@@ -383,7 +1130,10 @@ function ExperienceModes() {
         <p className="mt-2 text-muted-foreground">Explore stories in different ways.</p>
         <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {modes.map((m) => (
-            <div key={m.name} className="rounded-3xl border border-border bg-card p-6 text-center shadow-[var(--shadow-soft)] transition-transform hover:-translate-y-1">
+            <div
+              key={m.name}
+              className="rounded-3xl border border-border bg-card p-6 text-center shadow-[var(--shadow-soft)] transition-transform hover:-translate-y-1"
+            >
               <div className={`mx-auto grid h-14 w-14 place-items-center rounded-2xl ${m.tint}`}>
                 <m.icon className="h-7 w-7" />
               </div>
@@ -398,11 +1148,107 @@ function ExperienceModes() {
 }
 
 /* ---------- Multi Language ---------- */
+function Flag({
+  name,
+  children,
+  viewBox = "0 0 60 40",
+  className,
+}: {
+  name: string;
+  children: React.ReactNode;
+  viewBox?: string;
+  className?: string;
+}) {
+  return (
+    <svg
+      viewBox={viewBox}
+      aria-label={name}
+      role="img"
+      className={cn(
+        "h-10 w-14 rounded-md border border-border/60 shadow-[var(--shadow-soft)]",
+        className,
+      )}
+    >
+      {children}
+    </svg>
+  );
+}
+
+function UKFlag({ className }: { className?: string }) {
+  return (
+    <Flag name="United Kingdom flag" className={className}>
+      <rect width="60" height="40" fill="#012169" />
+      <line x1="0" y1="0" x2="60" y2="40" stroke="#fff" strokeWidth="10" />
+      <line x1="60" y1="0" x2="0" y2="40" stroke="#fff" strokeWidth="10" />
+      <line x1="0" y1="0" x2="60" y2="40" stroke="#c8102e" strokeWidth="4" />
+      <line x1="60" y1="0" x2="0" y2="40" stroke="#c8102e" strokeWidth="4" />
+      <rect x="24" width="12" height="40" fill="#fff" />
+      <rect y="14" width="60" height="12" fill="#fff" />
+      <rect x="26" width="8" height="40" fill="#c8102e" />
+      <rect y="16" width="60" height="8" fill="#c8102e" />
+    </Flag>
+  );
+}
+
+function IsraelFlag({ className }: { className?: string }) {
+  return (
+    <Flag name="Israel flag" className={className}>
+      <rect width="60" height="40" fill="#fff" />
+      <rect y="4" width="60" height="5" fill="#1f5fbf" />
+      <rect y="31" width="60" height="5" fill="#1f5fbf" />
+      <path d="M30 12 22 26h16Z" fill="none" stroke="#1f5fbf" strokeWidth="2" />
+      <path d="M30 28 38 14H22Z" fill="none" stroke="#1f5fbf" strokeWidth="2" />
+    </Flag>
+  );
+}
+
+function FranceFlag({ className }: { className?: string }) {
+  return (
+    <Flag name="France flag" className={className}>
+      <rect width="20" height="40" fill="#244aa5" />
+      <rect x="20" width="20" height="40" fill="#fff" />
+      <rect x="40" width="20" height="40" fill="#d62839" />
+    </Flag>
+  );
+}
+
+function GermanyFlag({ className }: { className?: string }) {
+  return (
+    <Flag name="Germany flag" className={className}>
+      <rect width="60" height="13.34" fill="#111" />
+      <rect y="13.33" width="60" height="13.34" fill="#c81d25" />
+      <rect y="26.66" width="60" height="13.34" fill="#f2c230" />
+    </Flag>
+  );
+}
+
+function SpainFlag({ className }: { className?: string }) {
+  return (
+    <Flag name="Spain flag" className={className}>
+      <rect width="60" height="40" fill="#aa151b" />
+      <rect y="10" width="60" height="20" fill="#f1bf00" />
+    </Flag>
+  );
+}
+
+function RussiaFlag({ className }: { className?: string }) {
+  return (
+    <Flag name="Russia flag" className={className}>
+      <rect width="60" height="13.34" fill="#fff" />
+      <rect y="13.33" width="60" height="13.34" fill="#2454c5" />
+      <rect y="26.66" width="60" height="13.34" fill="#c81d25" />
+    </Flag>
+  );
+}
+
 function MultiLanguage() {
   const langs = [
-    { name: "English", flag: "🇬🇧" }, { name: "Hebrew", flag: "🇮🇱" },
-    { name: "French", flag: "🇫🇷" }, { name: "German", flag: "🇩🇪" },
-    { name: "Spanish", flag: "🇪🇸" }, { name: "Russian", flag: "🇷🇺" },
+    { name: "English", flag: <UKFlag /> },
+    { name: "Hebrew", flag: <IsraelFlag /> },
+    { name: "French", flag: <FranceFlag /> },
+    { name: "German", flag: <GermanyFlag /> },
+    { name: "Spanish", flag: <SpainFlag /> },
+    { name: "Russian", flag: <RussiaFlag /> },
   ];
   return (
     <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 md:py-24">
@@ -410,8 +1256,11 @@ function MultiLanguage() {
       <p className="mt-2 text-muted-foreground">Natural audio in six languages.</p>
       <div className="mt-10 grid grid-cols-3 gap-5 sm:grid-cols-6">
         {langs.map((l) => (
-          <div key={l.name} className="flex flex-col items-center gap-2 rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-soft)]">
-            <span className="text-4xl">{l.flag}</span>
+          <div
+            key={l.name}
+            className="flex items-center justify-center gap-3 rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-soft)]"
+          >
+            {l.flag}
             <span className="text-sm font-semibold">{l.name}</span>
           </div>
         ))}
@@ -423,10 +1272,34 @@ function MultiLanguage() {
 /* ---------- Screenshots ---------- */
 function Screenshots() {
   const steps = [
-    { icon: MapIcon, title: "1. Choose a Place", desc: "Find any place in the world or use your current location.", tint: "from-[oklch(0.85_0.12_220)] to-[oklch(0.7_0.15_220)]" },
-    { icon: Compass, title: "2. Pick an Experience", desc: "Choose the style and length that fits your curiosity.", tint: "from-primary-soft to-primary/40" },
-    { icon: Headphones, title: "3. Listen & Enjoy", desc: "Listen to your personalized story with natural audio.", tint: "from-[oklch(0.4_0.06_50)] to-[oklch(0.25_0.04_50)]" },
-    { icon: Library, title: "4. Your Library", desc: "All your stories saved in one place to revisit anytime.", tint: "from-accent-soft to-accent/40" },
+    {
+      icon: MapIcon,
+      title: "1. Choose a Place",
+      desc: "Find any place in the world or use your current location.",
+      tint: "from-[oklch(0.85_0.12_220)] to-[oklch(0.7_0.15_220)]",
+      image: locationPickerScreen,
+    },
+    {
+      icon: Compass,
+      title: "2. Pick an Experience",
+      desc: "Choose the style and length that fits your curiosity.",
+      tint: "from-primary-soft to-primary/40",
+      image: chooseExperienceScreen,
+    },
+    {
+      icon: Headphones,
+      title: "3. Listen & Enjoy",
+      desc: "Listen to your personalized story with natural audio.",
+      tint: "from-[oklch(0.4_0.06_50)] to-[oklch(0.25_0.04_50)]",
+      image: storyAudioScreen,
+    },
+    {
+      icon: Library,
+      title: "4. Your Library",
+      desc: "All your stories saved in one place to revisit anytime.",
+      tint: "from-accent-soft to-accent/40",
+      image: myStoriesScreen,
+    },
   ];
   return (
     <section className="bg-primary-soft/60 py-16 md:py-24">
@@ -436,14 +1309,29 @@ function Screenshots() {
         <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {steps.map((s) => (
             <div key={s.title}>
-              <div className={`relative mx-auto aspect-[9/16] w-full max-w-[200px] overflow-hidden rounded-[1.75rem] border-[6px] border-foreground/90 bg-gradient-to-br ${s.tint} shadow-[0_20px_40px_-15px_rgba(0,0,0,0.3)]`}>
-                <span className="absolute left-1/2 top-1 z-10 h-3 w-16 -translate-x-1/2 rounded-full bg-foreground/90" />
-                <div className="grid h-full place-items-center">
-                  <s.icon className="h-12 w-12 text-background/90 drop-shadow" />
+              {s.image ? (
+                <div className="relative mx-auto aspect-[9/16] w-full max-w-[200px] overflow-hidden rounded-[1.75rem] border-[6px] border-foreground/90 bg-background shadow-[0_20px_40px_-15px_rgba(0,0,0,0.3)]">
+                  <img
+                    src={s.image}
+                    alt={s.title}
+                    loading="lazy"
+                    className="block h-full w-full object-cover"
+                  />
                 </div>
-              </div>
+              ) : (
+                <div
+                  className={`relative mx-auto aspect-[9/16] w-full max-w-[200px] overflow-hidden rounded-[1.75rem] border-[6px] border-foreground/90 bg-gradient-to-br ${s.tint} shadow-[0_20px_40px_-15px_rgba(0,0,0,0.3)]`}
+                >
+                  <span className="absolute left-1/2 top-1 z-10 h-3 w-16 -translate-x-1/2 rounded-full bg-foreground/90" />
+                  <div className="grid h-full place-items-center">
+                    <s.icon className="h-12 w-12 text-background/90 drop-shadow" />
+                  </div>
+                </div>
+              )}
               <h3 className="mt-4 text-center text-base font-bold">{s.title}</h3>
-              <p className="mx-auto mt-1 max-w-[220px] text-center text-sm text-muted-foreground">{s.desc}</p>
+              <p className="mx-auto mt-1 max-w-[220px] text-center text-sm text-muted-foreground">
+                {s.desc}
+              </p>
             </div>
           ))}
         </div>
@@ -455,23 +1343,52 @@ function Screenshots() {
 /* ---------- Community ---------- */
 function Community() {
   const items = [
-    { icon: Lightbulb, title: "Help shape features", desc: "We value your feedback" },
-    { icon: Heart, title: "Share your ideas", desc: "Suggest new places" },
-    { icon: Sparkles, title: "Early access", desc: "Be the first to explore" },
-    { icon: Users, title: "Future community", desc: "Stories, creators & more" },
+    {
+      icon: Lightbulb,
+      title: "Help shape features",
+      desc: "We value your feedback",
+      tint: "bg-[oklch(0.96_0.04_95)] text-[oklch(0.54_0.14_88)]",
+    },
+    {
+      icon: Heart,
+      title: "Share your ideas",
+      desc: "Suggest new places",
+      tint: "bg-[oklch(0.96_0.04_12)] text-[oklch(0.56_0.18_18)]",
+    },
+    {
+      icon: Sparkles,
+      title: "Early access",
+      desc: "Be the first to explore",
+      tint: "bg-primary-soft text-primary",
+    },
+    {
+      icon: Users,
+      title: "Future community",
+      desc: "Stories, creators & more",
+      tint: "bg-[oklch(0.95_0.04_230)] text-[oklch(0.46_0.12_235)]",
+    },
   ];
   return (
     <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 md:py-24">
       <div className="grid gap-10 lg:grid-cols-[1fr_360px] lg:items-start">
         <div>
-          <h2 className="text-3xl font-bold sm:text-4xl">Community <span className="text-muted-foreground text-xl font-medium">(Coming Soon)</span></h2>
+          <h2 className="text-3xl font-bold sm:text-4xl">
+            Community{" "}
+            <span className="text-muted-foreground text-xl font-medium">(Coming Soon)</span>
+          </h2>
           <p className="mt-3 max-w-xl text-muted-foreground">
-            PlaceEcho is in active development. We're building a community of curious explorers and storytellers.
+            PlaceEcho is in active development. We're building a community of curious explorers and
+            storytellers.
           </p>
           <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {items.map((i) => (
-              <div key={i.title} className="rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-soft)]">
-                <i.icon className="h-6 w-6 text-primary" />
+              <div
+                key={i.title}
+                className="rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-soft)]"
+              >
+                <span className={cn("grid h-11 w-11 place-items-center rounded-2xl", i.tint)}>
+                  <i.icon className="h-5 w-5" />
+                </span>
                 <h3 className="mt-3 text-sm font-bold">{i.title}</h3>
                 <p className="mt-1 text-xs text-muted-foreground">{i.desc}</p>
               </div>
@@ -493,28 +1410,53 @@ function Community() {
 /* ---------- About ---------- */
 function AboutPlaceEcho() {
   const pillars = [
-    { icon: Sparkles, label: "AI-Powered Stories" },
-    { icon: AudioLines, label: "Natural Audio" },
-    { icon: ShieldCheck, label: "Privacy Focused" },
-    { icon: Compass, label: "Made for Explorers" },
+    { icon: Sparkles, label: "AI-Powered Stories", tint: "bg-primary-soft text-primary" },
+    {
+      icon: AudioLines,
+      label: "Natural Audio",
+      tint: "bg-[oklch(0.96_0.04_160)] text-[oklch(0.45_0.13_165)]",
+    },
+    {
+      icon: ShieldCheck,
+      label: "Privacy Focused",
+      tint: "bg-[oklch(0.95_0.04_220)] text-[oklch(0.48_0.14_230)]",
+    },
+    {
+      icon: Compass,
+      label: "Made for Explorers",
+      tint: "bg-[oklch(0.96_0.04_95)] text-[oklch(0.54_0.14_88)]",
+    },
   ];
   return (
     <section className="bg-secondary/40 py-16 md:py-24">
       <div className="mx-auto grid max-w-7xl gap-10 px-4 sm:px-6 md:grid-cols-[320px_1fr] md:items-center">
         <div className="overflow-hidden rounded-3xl shadow-[var(--shadow-card)]">
-          <img src={aboutImg} alt="A Mediterranean coastal path" loading="lazy" width={1024} height={1024} className="h-full w-full object-cover" />
+          <img
+            src={placeechoPostcard}
+            alt="A traveler discovering stories with PlaceEcho"
+            loading="lazy"
+            width={1536}
+            height={1024}
+            className="h-full w-full object-cover"
+          />
         </div>
         <div>
           <h2 className="text-3xl font-bold sm:text-4xl">About PlaceEcho</h2>
           <p className="mt-4 max-w-2xl text-muted-foreground">
-            PlaceEcho was created to make every place feel more meaningful through AI-powered stories,
-            natural audio, cultural context, and personal exploration. Our technology turns any location
-            into a meaningful experience through immersive stories, historical insights, guides, and legends.
+            PlaceEcho was created to make every place feel more meaningful through AI-powered
+            stories, natural audio, cultural context, and personal exploration. Our technology turns
+            any location into a meaningful experience through immersive stories, historical
+            insights, guides, and legends.
           </p>
           <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
             {pillars.map((p) => (
-              <div key={p.label} className="flex flex-col items-center rounded-2xl border border-border bg-card p-4 text-center">
-                <p.icon className="h-6 w-6 text-primary" />
+              <div
+                key={p.label}
+                className="flex flex-col items-center rounded-2xl border border-border bg-card p-4 text-center"
+              >
+                <span className={cn("grid h-12 w-12 place-items-center rounded-2xl", p.tint)}>
+                  <p.icon className="h-5 w-5" />
+                </span>
                 <span className="mt-2 text-xs font-semibold">{p.label}</span>
               </div>
             ))}
@@ -529,15 +1471,30 @@ function AboutPlaceEcho() {
 function FinalCTA() {
   return (
     <section className="relative overflow-hidden bg-primary-soft py-20 text-center">
-      <div aria-hidden className="pointer-events-none absolute inset-0 opacity-30" style={{ backgroundImage: `url(${heroBg})`, backgroundSize: "cover", backgroundPosition: "center" }} />
-      <div aria-hidden className="pointer-events-none absolute inset-0 bg-gradient-to-b from-primary-soft via-primary-soft/80 to-primary-soft" />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 opacity-30"
+        style={{
+          backgroundImage: `url(${heroBg})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 bg-gradient-to-b from-primary-soft via-primary-soft/80 to-primary-soft"
+      />
       <div className="relative mx-auto max-w-2xl px-4">
         <h2 className="text-3xl font-bold text-primary sm:text-4xl md:text-5xl">
           Ready to Hear the Story Around You?
         </h2>
         <p className="mt-4 text-muted-foreground">Generate your first Echo in seconds.</p>
-        <Button size="lg" className="mt-7 rounded-full px-8 py-6 text-base shadow-[var(--shadow-card)]">
-          Try PlaceEcho Free
+        <Button
+          asChild
+          size="lg"
+          className="mt-7 rounded-full px-8 py-6 text-base shadow-[var(--shadow-card)]"
+        >
+          <a href={APP_URL}>Try PlaceEcho Free</a>
         </Button>
         <p className="mt-3 text-xs text-muted-foreground">No credit card required</p>
       </div>
