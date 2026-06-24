@@ -6,6 +6,7 @@ import {
   Map as MapIcon, Library, ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Header, Footer } from "@/components/site-chrome";
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
