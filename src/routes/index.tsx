@@ -24,6 +24,7 @@ import {
   Map as MapIcon,
   Library,
   ChevronRight,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Header, Footer } from "@/components/site-chrome";
@@ -328,13 +329,477 @@ function MockField({
   );
 }
 
+type PhotoCoordinates = {
+  latitude: number;
+  longitude: number;
+};
+
+type DemoPhotoState =
+  | {
+      status: "idle";
+    }
+  | {
+      status: "reading";
+      file: File;
+      fileName: string;
+      previewUrl: string;
+    }
+  | {
+      status: "resolved";
+      file: File;
+      fileName: string;
+      previewUrl: string;
+      coords: PhotoCoordinates;
+      context: DemoLocationContext | null;
+    }
+  | {
+      status: "missing-gps";
+      file: File;
+      fileName: string;
+      previewUrl: string;
+    }
+  | {
+      status: "error";
+      file: File;
+      fileName: string;
+      previewUrl: string | null;
+      message: string;
+    };
+
+type DemoLocationContext = {
+  placeName?: string | null;
+  city?: string | null;
+  country?: string | null;
+  region?: string | null;
+  confidence?: number | null;
+  source?: string | null;
+};
+
+type DemoStory = {
+  id: string;
+  title: string;
+  summary?: string | null;
+  text?: string | null;
+  language?: string | null;
+  experience_mode?: string | null;
+  audio_url?: string | null;
+  share_url?: string | null;
+};
+
+type DemoGenerateResponse = {
+  story?: DemoStory | null;
+  context?: DemoLocationContext | null;
+  cached?: boolean;
+  degraded_mode?: boolean;
+  warningKey?: string | null;
+  request_id?: string;
+};
+
+type DemoApiError = {
+  error?: string;
+  message?: string;
+  details?: unknown;
+  request_id?: string;
+};
+
+type DemoUiError =
+  | {
+      kind: "default";
+      message: string;
+    }
+  | {
+      kind: "daily-quota";
+      message: string;
+    };
+
+type LocationSearchItem = {
+  name: string;
+  address?: string | null;
+  lat: number;
+  lng: number;
+  type?: string | null;
+  source?: string | null;
+};
+
+type LocationSearchResponse = {
+  items?: LocationSearchItem[];
+};
+
+const DEMO_GPS_REQUIRED_MESSAGE =
+  "For this demo, please choose a photo with GPS metadata so we can show where it was taken. In the full PlaceEcho app, it also works without GPS.";
+const PUBLIC_API_CLIENT_ID_KEY = "placeecho_public_client_id";
+const demoEnv = import.meta.env as Record<string, string | boolean | undefined>;
+const IS_DEMO_MODE =
+  demoEnv.MODE?.toString().toLowerCase() === "demo" ||
+  demoEnv.VITE_DEMO_MODE?.toString().toLowerCase() === "true";
+const PUBLIC_API_BASE_URL = IS_DEMO_MODE
+  ? "http://127.0.0.1:8002/public/v1"
+  : ((import.meta.env.VITE_PUBLIC_API_BASE_URL as string | undefined) ?? `${APP_URL}/public/v1`);
+
+class DemoRequestError extends Error {
+  code?: string;
+  requestId?: string;
+
+  constructor({
+    code,
+    message,
+    requestId,
+  }: {
+    code?: string;
+    message: string;
+    requestId?: string;
+  }) {
+    super(message);
+    this.code = code;
+    this.requestId = requestId;
+  }
+}
+
+function readAscii(view: DataView, start: number, length: number) {
+  let result = "";
+  for (let index = 0; index < length; index += 1) {
+    result += String.fromCharCode(view.getUint8(start + index));
+  }
+  return result;
+}
+
+function findIfdEntry(view: DataView, ifdOffset: number, targetTag: number, littleEndian: boolean) {
+  if (ifdOffset + 2 > view.byteLength) return null;
+  const entryCount = view.getUint16(ifdOffset, littleEndian);
+
+  for (let entryIndex = 0; entryIndex < entryCount; entryIndex += 1) {
+    const entryOffset = ifdOffset + 2 + entryIndex * 12;
+    if (entryOffset + 12 > view.byteLength) return null;
+    const tag = view.getUint16(entryOffset, littleEndian);
+    if (tag === targetTag) return entryOffset;
+  }
+
+  return null;
+}
+
+function readInlineAscii(view: DataView, entryOffset: number, count: number) {
+  let result = "";
+  for (let index = 0; index < count; index += 1) {
+    const charCode = view.getUint8(entryOffset + 8 + index);
+    if (charCode === 0) break;
+    result += String.fromCharCode(charCode);
+  }
+  return result;
+}
+
+function readRationalArray(
+  view: DataView,
+  tiffStart: number,
+  entryOffset: number,
+  count: number,
+  littleEndian: boolean,
+) {
+  const valueOffset = tiffStart + view.getUint32(entryOffset + 8, littleEndian);
+  const values: number[] = [];
+
+  for (let index = 0; index < count; index += 1) {
+    const rationalOffset = valueOffset + index * 8;
+    if (rationalOffset + 8 > view.byteLength) return null;
+    const numerator = view.getUint32(rationalOffset, littleEndian);
+    const denominator = view.getUint32(rationalOffset + 4, littleEndian);
+    if (!denominator) return null;
+    values.push(numerator / denominator);
+  }
+
+  return values;
+}
+
+function dmsToDecimal(values: number[], ref: string) {
+  const [degrees = 0, minutes = 0, seconds = 0] = values;
+  const sign = ref === "S" || ref === "W" ? -1 : 1;
+  return sign * (degrees + minutes / 60 + seconds / 3600);
+}
+
+function extractGpsFromJpeg(view: DataView): PhotoCoordinates | null {
+  if (view.byteLength < 4 || view.getUint16(0, false) !== 0xffd8) return null;
+
+  let offset = 2;
+
+  while (offset + 4 <= view.byteLength) {
+    if (view.getUint8(offset) !== 0xff) return null;
+
+    const marker = view.getUint8(offset + 1);
+    if (marker === 0xda || marker === 0xd9) break;
+
+    const segmentLength = view.getUint16(offset + 2, false);
+    if (segmentLength < 2) return null;
+
+    if (marker === 0xe1 && readAscii(view, offset + 4, 4) === "Exif") {
+      const tiffStart = offset + 10;
+      const byteOrder = readAscii(view, tiffStart, 2);
+      const littleEndian = byteOrder === "II";
+
+      if (!littleEndian && byteOrder !== "MM") return null;
+      if (tiffStart + 8 > view.byteLength) return null;
+      if (view.getUint16(tiffStart + 2, littleEndian) !== 42) return null;
+
+      const firstIfdOffset = tiffStart + view.getUint32(tiffStart + 4, littleEndian);
+      const gpsPointerEntry = findIfdEntry(view, firstIfdOffset, 0x8825, littleEndian);
+      if (!gpsPointerEntry) return null;
+
+      const gpsIfdOffset = tiffStart + view.getUint32(gpsPointerEntry + 8, littleEndian);
+      const latRefEntry = findIfdEntry(view, gpsIfdOffset, 0x0001, littleEndian);
+      const latEntry = findIfdEntry(view, gpsIfdOffset, 0x0002, littleEndian);
+      const lngRefEntry = findIfdEntry(view, gpsIfdOffset, 0x0003, littleEndian);
+      const lngEntry = findIfdEntry(view, gpsIfdOffset, 0x0004, littleEndian);
+
+      if (!latRefEntry || !latEntry || !lngRefEntry || !lngEntry) return null;
+
+      const latRef = readInlineAscii(view, latRefEntry, 2);
+      const lngRef = readInlineAscii(view, lngRefEntry, 2);
+      const latValues = readRationalArray(view, tiffStart, latEntry, 3, littleEndian);
+      const lngValues = readRationalArray(view, tiffStart, lngEntry, 3, littleEndian);
+
+      if (!latRef || !lngRef || !latValues || !lngValues) return null;
+
+      return {
+        latitude: dmsToDecimal(latValues, latRef),
+        longitude: dmsToDecimal(lngValues, lngRef),
+      };
+    }
+
+    offset += segmentLength + 2;
+  }
+
+  return null;
+}
+
+async function extractPhotoCoordinates(file: File) {
+  const buffer = await file.arrayBuffer();
+  return extractGpsFromJpeg(new DataView(buffer));
+}
+
+function formatCoordinates(coords: PhotoCoordinates) {
+  return `${coords.latitude.toFixed(4)}, ${coords.longitude.toFixed(4)}`;
+}
+
+function getPublicClientId() {
+  if (typeof window === "undefined") return "placeecho-site-ssr";
+
+  const existing = window.localStorage.getItem(PUBLIC_API_CLIENT_ID_KEY);
+  if (existing) return existing;
+
+  const nextValue = window.crypto?.randomUUID?.() ?? `placeecho-${Date.now()}`;
+  window.localStorage.setItem(PUBLIC_API_CLIENT_ID_KEY, nextValue);
+  return nextValue;
+}
+
+async function publicApi(path: string, options: RequestInit = {}) {
+  const headers = new Headers(options.headers ?? {});
+  headers.set("X-PlaceEcho-Client-Id", getPublicClientId());
+
+  return fetch(`${PUBLIC_API_BASE_URL}${path}`, {
+    ...options,
+    headers,
+  });
+}
+
+async function readApiError(response: Response) {
+  try {
+    const payload = (await response.json()) as DemoApiError;
+    return {
+      code: payload.error,
+      message: payload.message || `The demo request failed with status ${response.status}.`,
+      requestId: payload.request_id,
+    };
+  } catch {
+    return {
+      message: `The demo request failed with status ${response.status}.`,
+    };
+  }
+}
+
+function toDemoUiError(error: unknown): DemoUiError {
+  if (error instanceof DemoRequestError) {
+    if (error.code === "PUBLIC_DAILY_LIMIT_EXCEEDED") {
+      return {
+        kind: "daily-quota",
+        message:
+          "The public demo is unavailable right now. Try the full PlaceEcho app to keep exploring places and generating stories.",
+      };
+    }
+
+    const requestId = error.requestId ? ` Request ID: ${error.requestId}.` : "";
+    return {
+      kind: "default",
+      message: `${error.message}${requestId}`,
+    };
+  }
+
+  if (error instanceof Error) {
+    return {
+      kind: "default",
+      message: error.message,
+    };
+  }
+
+  return {
+    kind: "default",
+    message: "Something went wrong while using the demo.",
+  };
+}
+
+function buildPlaceLabel(context: DemoLocationContext | null, coords: PhotoCoordinates) {
+  if (!context) return formatCoordinates(coords);
+
+  const parts = [context.placeName, context.city, context.country].filter(
+    (value): value is string => Boolean(value),
+  );
+
+  return Array.from(new Set(parts)).join(", ") || formatCoordinates(coords);
+}
+
+function getCurrentBrowserCoordinates() {
+  return new Promise<PhotoCoordinates>((resolve, reject) => {
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        resolve({
+          latitude: Number(position.coords.latitude.toFixed(6)),
+          longitude: Number(position.coords.longitude.toFixed(6)),
+        });
+      },
+      () => {
+        reject(new Error("LOCATION_ACCESS_FAILED"));
+      },
+      {
+        enableHighAccuracy: true,
+        maximumAge: 0,
+        timeout: 10000,
+      },
+    );
+  });
+}
+
+function resolvePublicAssetUrl(value: string) {
+  try {
+    return new URL(value, `${PUBLIC_API_BASE_URL}/`).toString();
+  } catch {
+    return value;
+  }
+}
+
+function parseCoordinates(value: string) {
+  const match = value.match(/^\s*(-?\d+(?:\.\d+)?)\s*[, ]\s*(-?\d+(?:\.\d+)?)\s*$/);
+  if (!match) return null;
+
+  const latitude = Number(match[1]);
+  const longitude = Number(match[2]);
+
+  if (
+    Number.isNaN(latitude) ||
+    Number.isNaN(longitude) ||
+    latitude < -90 ||
+    latitude > 90 ||
+    longitude < -180 ||
+    longitude > 180
+  ) {
+    return null;
+  }
+
+  return { latitude, longitude };
+}
+
+function getLanguageCode(language: string) {
+  switch (language) {
+    case "german":
+      return "de";
+    case "hebrew":
+      return "he";
+    case "french":
+      return "fr";
+    case "russian":
+      return "ru";
+    case "spanish":
+      return "es";
+    case "english":
+    default:
+      return "en";
+  }
+}
+
+function getExperienceMode(value: string) {
+  switch (value) {
+    case "historical":
+      return "historical";
+    case "guide":
+      return "guide";
+    case "urban-legend":
+      return "legend";
+    case "story":
+    default:
+      return "story";
+  }
+}
+
+async function fetchContextFromGps(coords: PhotoCoordinates, languageCode: string) {
+  const response = await publicApi(`/context/from-gps?lang=${languageCode}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Accept-Language": languageCode,
+    },
+    body: JSON.stringify({
+      lat: coords.latitude,
+      lng: coords.longitude,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new DemoRequestError(await readApiError(response));
+  }
+
+  return (await response.json()) as DemoLocationContext;
+}
+
+async function searchLocations(query: string, languageCode: string, limit = 5) {
+  const params = new URLSearchParams({
+    q: query,
+    limit: String(limit),
+  });
+  const response = await publicApi(`/locations/search?${params.toString()}`, {
+    method: "GET",
+    headers: {
+      "Accept-Language": languageCode,
+    },
+  });
+
+  if (!response.ok) {
+    throw new DemoRequestError(await readApiError(response));
+  }
+
+  const payload = (await response.json()) as LocationSearchResponse;
+  return payload.items ?? [];
+}
+
 /* ---------- Try Demo ---------- */
 function TryDemo() {
-  const checks = ["Pick a place", "Choose an experience", "Generate and listen"];
+  const checks = ["Pick a place or upload a photo", "Choose an experience", "Generate and listen"];
   const [location, setLocation] = useState("");
   const [length, setLength] = useState("short");
   const [experience, setExperience] = useState("story");
   const [language, setLanguage] = useState("english");
+  const [photoState, setPhotoState] = useState<DemoPhotoState>({ status: "idle" });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<DemoUiError | null>(null);
+  const [demoResult, setDemoResult] = useState<DemoGenerateResponse | null>(null);
+  const [selectedCoords, setSelectedCoords] = useState<PhotoCoordinates | null>(null);
+  const [locationSuggestions, setLocationSuggestions] = useState<LocationSearchItem[]>([]);
+  const [isSearchingLocations, setIsSearchingLocations] = useState(false);
+  const [locationSearchError, setLocationSearchError] = useState<string | null>(null);
+  const [isLocationFocused, setIsLocationFocused] = useState(false);
+  const [isDemoListening, setIsDemoListening] = useState(false);
+  const [demoListenMode, setDemoListenMode] = useState<"audio" | "speech" | null>(null);
+  const [isResolvingMyLocation, setIsResolvingMyLocation] = useState(false);
+  const [isDemoQuotaExceeded, setIsDemoQuotaExceeded] = useState(false);
+  const locationRequestIdRef = useRef(0);
+  const demoAudioRef = useRef<HTMLAudioElement | null>(null);
+  const demoUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const photoInputRef = useRef<HTMLInputElement | null>(null);
   const languageOptions = [
     { value: "english", label: "English", flag: UKFlag },
     { value: "german", label: "German", flag: GermanyFlag },
@@ -343,173 +808,938 @@ function TryDemo() {
     { value: "russian", label: "Russian", flag: RussiaFlag },
     { value: "spanish", label: "Spanish", flag: SpainFlag },
   ] as const;
+  const languageCode = getLanguageCode(language);
+
+  function stopDemoPlayback() {
+    if (demoAudioRef.current) {
+      demoAudioRef.current.pause();
+      demoAudioRef.current.currentTime = 0;
+    }
+
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+    }
+
+    demoUtteranceRef.current = null;
+    setIsDemoListening(false);
+    setDemoListenMode(null);
+  }
+
+  function clearTransientDemoError() {
+    setSubmitError((current) => (current?.kind === "daily-quota" ? current : null));
+  }
+
+  function applyDemoUiError(error: unknown) {
+    const uiError = toDemoUiError(error);
+
+    if (uiError.kind === "daily-quota") {
+      stopDemoPlayback();
+      setIsDemoQuotaExceeded(true);
+      setLocation("");
+      setSelectedCoords(null);
+      setLocationSuggestions([]);
+      setLocationSearchError(null);
+      setIsLocationFocused(false);
+      setDemoResult(null);
+    }
+
+    setSubmitError(uiError);
+    return uiError;
+  }
 
   const handleUseMyLocation = () => {
-    if (!navigator.geolocation) return;
-    navigator.geolocation.getCurrentPosition(
-      (pos) => setLocation(`${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}`),
-      () => {},
-    );
+    if (isDemoQuotaExceeded) return;
+
+    if (!navigator.geolocation) {
+      setSubmitError({
+        kind: "default",
+        message:
+          "Location access isn't available in this browser. Search for a place or upload a photo instead.",
+      });
+      return;
+    }
+
+    const requestId = locationRequestIdRef.current + 1;
+    locationRequestIdRef.current = requestId;
+    setIsResolvingMyLocation(true);
+    clearTransientDemoError();
+    setLocationSuggestions([]);
+    setLocationSearchError(null);
+    setDemoResult(null);
+
+    void (async () => {
+      try {
+        const coords = await getCurrentBrowserCoordinates();
+        if (requestId !== locationRequestIdRef.current) return;
+
+        setSelectedCoords(coords);
+
+        try {
+          const context = await fetchContextFromGps(coords, languageCode);
+          if (requestId !== locationRequestIdRef.current) return;
+
+          setLocation(buildPlaceLabel(context, coords));
+          setDemoResult((current) => (current ? { ...current, context } : current));
+        } catch (error) {
+          if (requestId !== locationRequestIdRef.current) return;
+
+          const uiError = applyDemoUiError(error);
+          if (uiError.kind !== "daily-quota") {
+            setLocation(formatCoordinates(coords));
+          }
+        }
+      } catch {
+        if (requestId !== locationRequestIdRef.current) return;
+
+        setSubmitError({
+          kind: "default",
+          message:
+            "We couldn't access your location. Please allow GPS access, search for a place, or upload a photo.",
+        });
+      } finally {
+        if (requestId === locationRequestIdRef.current) {
+          setIsResolvingMyLocation(false);
+        }
+      }
+    })();
   };
+
+  useEffect(() => {
+    if (photoState.status === "idle" || !photoState.previewUrl) return;
+
+    return () => {
+      if (photoState.previewUrl) {
+        URL.revokeObjectURL(photoState.previewUrl);
+      }
+    };
+  }, [photoState]);
+
+  useEffect(() => {
+    stopDemoPlayback();
+  }, [demoResult?.story?.id]);
+
+  useEffect(
+    () => () => {
+      if (typeof window !== "undefined" && "speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+      }
+    },
+    [],
+  );
+
+  useEffect(() => {
+    const trimmedQuery = location.trim();
+    const parsedCoords = parseCoordinates(trimmedQuery);
+    let isCancelled = false;
+
+    if (
+      isDemoQuotaExceeded ||
+      !isLocationFocused ||
+      !trimmedQuery ||
+      trimmedQuery.length < 2 ||
+      parsedCoords
+    ) {
+      setIsSearchingLocations(false);
+      setLocationSearchError(null);
+      setLocationSuggestions([]);
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      void (async () => {
+        setIsSearchingLocations(true);
+        setLocationSearchError(null);
+
+        try {
+          const items = await searchLocations(trimmedQuery, languageCode);
+          if (isCancelled) return;
+          setLocationSuggestions(items);
+        } catch (error) {
+          if (isCancelled) return;
+          const uiError = toDemoUiError(error);
+          if (uiError.kind === "daily-quota") {
+            stopDemoPlayback();
+            setIsDemoQuotaExceeded(true);
+            setLocation("");
+            setSelectedCoords(null);
+            setLocationSuggestions([]);
+            setLocationSearchError(null);
+            setIsLocationFocused(false);
+            setDemoResult(null);
+            setSubmitError(uiError);
+            return;
+          }
+
+          setLocationSuggestions([]);
+          setLocationSearchError(uiError.message);
+        } finally {
+          if (!isCancelled) {
+            setIsSearchingLocations(false);
+          }
+        }
+      })();
+    }, 250);
+
+    return () => {
+      isCancelled = true;
+      window.clearTimeout(timeoutId);
+    };
+  }, [isDemoQuotaExceeded, isLocationFocused, languageCode, location]);
+
+  const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+
+    if (!file) {
+      setPhotoState({ status: "idle" });
+      return;
+    }
+
+    const previewUrl = URL.createObjectURL(file);
+    setPhotoState({ status: "reading", file, fileName: file.name, previewUrl });
+    clearTransientDemoError();
+    setDemoResult(null);
+
+    try {
+      const coords = await extractPhotoCoordinates(file);
+
+      if (!coords) {
+        setPhotoState({
+          status: "missing-gps",
+          file,
+          fileName: file.name,
+          previewUrl,
+        });
+        return;
+      }
+
+      setLocation(formatCoordinates(coords));
+      setSelectedCoords(coords);
+      setLocationSuggestions([]);
+      setLocationSearchError(null);
+
+      let context: DemoLocationContext | null = null;
+      try {
+        context = await fetchContextFromGps(coords, languageCode);
+      } catch (error) {
+        const uiError = toDemoUiError(error);
+        if (uiError.kind === "daily-quota") {
+          applyDemoUiError(error);
+        }
+        context = null;
+      }
+
+      if (context) {
+        setLocation(buildPlaceLabel(context, coords));
+      }
+
+      setPhotoState({
+        status: "resolved",
+        file,
+        fileName: file.name,
+        previewUrl,
+        coords,
+        context,
+      });
+    } catch {
+      setPhotoState({
+        status: "error",
+        file,
+        fileName: file.name,
+        previewUrl,
+        message: "We could not read this image. Please try a JPG photo with GPS metadata.",
+      });
+    } finally {
+      event.target.value = "";
+    }
+  };
+
+  const handleRemovePhoto = () => {
+    if (photoInputRef.current) {
+      photoInputRef.current.value = "";
+    }
+    setPhotoState({ status: "idle" });
+    setDemoResult(null);
+    clearTransientDemoError();
+  };
+
+  const handleLocationChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const nextValue = event.target.value;
+    const parsedCoords = parseCoordinates(nextValue);
+
+    setLocation(nextValue);
+    setSelectedCoords(parsedCoords);
+    clearTransientDemoError();
+    setLocationSearchError(null);
+    setDemoResult(null);
+  };
+
+  const handleLocationSelect = (item: LocationSearchItem) => {
+    const coords = {
+      latitude: item.lat,
+      longitude: item.lng,
+    };
+
+    setLocation(item.address || item.name);
+    setSelectedCoords(coords);
+    setLocationSuggestions([]);
+    setIsLocationFocused(false);
+    clearTransientDemoError();
+    setLocationSearchError(null);
+    setDemoResult(null);
+  };
+
+  const handleGenerateStory = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (isDemoQuotaExceeded) return;
+
+    const coords =
+      photoState.status === "resolved"
+        ? photoState.coords
+        : (selectedCoords ?? parseCoordinates(location));
+
+    if (photoState.status === "missing-gps") {
+      setSubmitError({
+        kind: "default",
+        message: DEMO_GPS_REQUIRED_MESSAGE,
+      });
+      return;
+    }
+
+    if (!coords) {
+      setSubmitError({
+        kind: "default",
+        message:
+          "To use the demo, choose a location or upload a photo. You can search for a place, use My Location, or add a photo with GPS.",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+    clearTransientDemoError();
+    setDemoResult(null);
+
+    try {
+      const preferences = {
+        length,
+        story_language: languageCode,
+        system_language: languageCode,
+        experience_mode: getExperienceMode(experience),
+      };
+
+      const context =
+        photoState.status === "resolved" && photoState.context
+          ? photoState.context
+          : await fetchContextFromGps(coords, languageCode);
+
+      const response =
+        photoState.status === "resolved"
+          ? await publicApi("/stories/generate", {
+              method: "POST",
+              body: (() => {
+                const form = new FormData();
+                form.append("settings", JSON.stringify(preferences));
+                form.append("gps", JSON.stringify({ lat: coords.latitude, lng: coords.longitude }));
+                form.append("context", JSON.stringify(context));
+                form.append("image", photoState.file);
+                return form;
+              })(),
+            })
+          : await publicApi("/stories/generate", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Accept-Language": languageCode,
+              },
+              body: JSON.stringify({
+                gps: { lat: coords.latitude, lng: coords.longitude },
+                context,
+                preferences,
+              }),
+            });
+
+      if (!response.ok) {
+        throw new DemoRequestError(await readApiError(response));
+      }
+
+      const result = (await response.json()) as DemoGenerateResponse;
+      setDemoResult({
+        ...result,
+        context: result.context ?? context,
+      });
+    } catch (error) {
+      applyDemoUiError(error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const toggleDemoPlayback = async () => {
+    const story = demoResult?.story;
+
+    if (!story) return;
+
+    if (isDemoListening) {
+      stopDemoPlayback();
+      return;
+    }
+
+    if (story.audio_url && demoAudioRef.current) {
+      try {
+        demoAudioRef.current.currentTime = 0;
+        await demoAudioRef.current.play();
+        setIsDemoListening(true);
+        setDemoListenMode("audio");
+      } catch {
+        setSubmitError({
+          kind: "default",
+          message: "We couldn't start audio playback right now. Please try again.",
+        });
+      }
+      return;
+    }
+
+    if (typeof window === "undefined" || !("speechSynthesis" in window) || !story.text) {
+      setSubmitError({
+        kind: "default",
+        message: "Audio playback isn't available for this demo result right now.",
+      });
+      return;
+    }
+
+    window.speechSynthesis.cancel();
+
+    const utterance = new SpeechSynthesisUtterance(story.text);
+    utterance.lang = story.language || languageCode;
+    utterance.rate = story.experience_mode === "guide" ? 1 : 0.95;
+    utterance.onend = () => {
+      demoUtteranceRef.current = null;
+      setIsDemoListening(false);
+      setDemoListenMode(null);
+    };
+    utterance.onerror = () => {
+      demoUtteranceRef.current = null;
+      setIsDemoListening(false);
+      setDemoListenMode(null);
+    };
+
+    demoUtteranceRef.current = utterance;
+    window.speechSynthesis.speak(utterance);
+    setIsDemoListening(true);
+    setDemoListenMode("speech");
+  };
+
+  const resolvedPhotoContext = photoState.status === "resolved" ? photoState.context : null;
+  const activeCoords =
+    photoState.status === "resolved"
+      ? photoState.coords
+      : (selectedCoords ?? parseCoordinates(location));
+  const shouldShowLocationDropdown =
+    isLocationFocused &&
+    (isSearchingLocations ||
+      Boolean(locationSearchError) ||
+      (location.trim().length >= 2 && !parseCoordinates(location)));
 
   return (
     <section id="try-demo" className="scroll-mt-24 bg-primary-soft py-16 md:py-24">
-      <div className="mx-auto grid max-w-7xl gap-10 px-4 sm:px-6 md:grid-cols-2 md:items-center">
-        <div>
-          <h2 className="text-3xl font-bold sm:text-4xl">Try the Demo</h2>
-          <p className="mt-3 max-w-md text-muted-foreground">
-            See how PlaceEcho turns any place into an unforgettable story experience.
-          </p>
-          <ul className="mt-6 space-y-3">
-            {checks.map((c) => (
-              <li key={c} className="flex items-center gap-3 text-sm font-medium">
-                <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[oklch(0.68_0.18_152)] text-white shadow-[0_10px_24px_-10px_rgba(34,197,94,0.9)] ring-4 ring-[oklch(0.93_0.05_150)]">
-                  <Check className="h-4.5 w-4.5 stroke-[3]" />
-                </span>
-                <span>{c}</span>
-              </li>
-            ))}
-          </ul>
-          <Button asChild size="lg" className="mt-7 rounded-full px-6">
-            <a href="#try-demo">Try the Demo</a>
-          </Button>
-        </div>
-        <form
-          onSubmit={(e) => e.preventDefault()}
-          className="mx-auto w-full max-w-md rounded-3xl border border-border bg-card p-6 shadow-[var(--shadow-card)]"
-        >
-          <h3 className="mb-5 text-center text-xl font-bold">Try the Demo</h3>
-          <div className="space-y-5">
-            <FormField label="Location">
-              <div className="flex flex-col gap-2 sm:flex-row">
-                <div className="relative flex-1">
-                  <MapPin className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-primary" />
-                  <Input
-                    type="text"
-                    value={location}
-                    onChange={(e) => setLocation(e.target.value)}
-                    placeholder="Enter an address or place"
-                    className="rounded-xl bg-background pl-9"
-                  />
-                </div>
-                <Button
-                  type="button"
-                  onClick={handleUseMyLocation}
-                  className="rounded-xl whitespace-nowrap"
-                >
-                  Use My Location
-                </Button>
-              </div>
-            </FormField>
-
-            <FormField label="Length">
-              <ToggleGroup
-                type="single"
-                value={length}
-                onValueChange={(value) => {
-                  if (value) setLength(value);
-                }}
-                variant="outline"
-                className="grid grid-cols-3 gap-2 rounded-2xl bg-background p-1"
-                aria-label="Story length"
-              >
-                {[
-                  { v: "short", l: "Short" },
-                  { v: "medium", l: "Medium" },
-                  { v: "long", l: "Long" },
-                ].map((o) => (
-                  <ToggleGroupItem
-                    key={o.v}
-                    value={o.v}
-                    className="h-11 rounded-xl border border-border bg-background px-4 text-sm font-semibold text-foreground shadow-none hover:bg-background hover:text-foreground data-[state=on]:border-primary data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-[var(--shadow-soft)]"
-                    aria-label={o.l}
-                  >
-                    {o.l}
-                  </ToggleGroupItem>
-                ))}
-              </ToggleGroup>
-            </FormField>
-
-            <FormField label="Experience">
-              <ToggleGroup
-                type="single"
-                value={experience}
-                onValueChange={(value) => {
-                  if (value) setExperience(value);
-                }}
-                variant="outline"
-                className="grid grid-cols-2 gap-3"
-                aria-label="Experience"
-              >
-                {[
-                  { v: "story", l: "Story", icon: BookText, tint: "bg-primary-soft text-primary" },
-                  {
-                    v: "historical",
-                    l: "Historical",
-                    icon: Landmark,
-                    tint: "bg-[oklch(0.97_0.04_85)] text-[oklch(0.48_0.16_72)]",
-                  },
-                  {
-                    v: "guide",
-                    l: "Guide",
-                    icon: Compass,
-                    tint: "bg-[oklch(0.96_0.04_230)] text-[oklch(0.45_0.13_235)]",
-                  },
-                  {
-                    v: "urban-legend",
-                    l: "Urban Legend",
-                    icon: Ghost,
-                    tint: "bg-[oklch(0.96_0.04_8)] text-[oklch(0.54_0.18_8)]",
-                  },
-                ].map((o) => (
-                  <ToggleGroupItem
-                    key={o.v}
-                    value={o.v}
-                    className="h-auto min-h-14 flex-col items-start justify-center rounded-2xl border border-border bg-card px-3 py-2.5 text-left text-foreground shadow-[var(--shadow-soft)] hover:bg-card hover:text-foreground data-[state=on]:border-primary data-[state=on]:bg-[oklch(0.98_0.03_72)] data-[state=on]:text-foreground data-[state=on]:shadow-[var(--shadow-card)]"
-                    aria-label={o.l}
-                  >
-                    <span className="flex w-full items-center gap-2.5">
-                      <span
-                        className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg ${o.tint}`}
-                      >
-                        <o.icon className="h-4 w-4" />
-                      </span>
-                      <span className="text-sm leading-none font-bold">{o.l}</span>
-                    </span>
-                  </ToggleGroupItem>
-                ))}
-              </ToggleGroup>
-            </FormField>
-
-            <FormField label="Language">
-              <ToggleGroup
-                type="single"
-                value={language}
-                onValueChange={(value) => {
-                  if (value) setLanguage(value);
-                }}
-                className="grid grid-cols-3 gap-2"
-                aria-label="Language"
-              >
-                {languageOptions.map((option) => (
-                  <ToggleGroupItem
-                    key={option.value}
-                    value={option.value}
-                    className="h-12 justify-start rounded-xl border border-border bg-card px-3 text-left text-sm font-semibold text-foreground shadow-none hover:bg-card hover:text-foreground data-[state=on]:border-primary data-[state=on]:bg-[oklch(0.98_0.03_72)] data-[state=on]:text-foreground data-[state=on]:shadow-[var(--shadow-soft)]"
-                    aria-label={option.label}
-                  >
-                    <option.flag className="h-4 w-6 shrink-0 rounded-sm border border-border/60 shadow-none" />
-                    <span className="truncate">{option.label}</span>
-                  </ToggleGroupItem>
-                ))}
-              </ToggleGroup>
-            </FormField>
-
-            <Button type="submit" className="mt-2 w-full rounded-xl py-6 text-base gap-2">
-              <Sparkles className="h-4 w-4" /> Generate Story
+      <div className="mx-auto max-w-7xl px-4 sm:px-6">
+        <div className="grid gap-10 md:grid-cols-2 md:items-center">
+          <div>
+            <h2 className="text-3xl font-bold sm:text-4xl">Try the Demo</h2>
+            <p className="mt-3 max-w-md text-muted-foreground">
+              See how PlaceEcho turns any place into an unforgettable story experience.
+            </p>
+            <ul className="mt-6 space-y-3">
+              {checks.map((c) => (
+                <li key={c} className="flex items-center gap-3 text-sm font-medium">
+                  <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[oklch(0.68_0.18_152)] text-white shadow-[0_10px_24px_-10px_rgba(34,197,94,0.9)] ring-4 ring-[oklch(0.93_0.05_150)]">
+                    <Check className="h-4.5 w-4.5 stroke-[3]" />
+                  </span>
+                  <span>{c}</span>
+                </li>
+              ))}
+            </ul>
+            <Button asChild size="lg" className="mt-7 rounded-full px-6">
+              <a href="#try-demo">Try the Demo</a>
             </Button>
           </div>
-        </form>
+          <form
+            onSubmit={handleGenerateStory}
+            className="mx-auto w-full max-w-md rounded-3xl border border-border bg-card p-6 shadow-[var(--shadow-card)]"
+          >
+            <h3 className="mb-5 text-center text-xl font-bold">Try the Demo</h3>
+            <div className="space-y-5">
+              <FormField label="Search Place">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-start">
+                  <div className="relative flex-1">
+                    <MapPin className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-primary" />
+                    <Input
+                      type="text"
+                      value={location}
+                      onChange={handleLocationChange}
+                      onFocus={() => setIsLocationFocused(true)}
+                      onBlur={() => {
+                        window.setTimeout(() => setIsLocationFocused(false), 120);
+                      }}
+                      placeholder="Type a city, landmark, or GPS coordinates"
+                      className="rounded-xl bg-background pl-9"
+                    />
+                    {shouldShowLocationDropdown ? (
+                      <div className="absolute left-0 right-0 top-[calc(100%+0.5rem)] z-20 overflow-hidden rounded-2xl border border-border bg-card shadow-[var(--shadow-card)]">
+                        {isSearchingLocations ? (
+                          <div className="px-4 py-3 text-sm text-muted-foreground">
+                            Searching places...
+                          </div>
+                        ) : null}
+
+                        {!isSearchingLocations && locationSearchError ? (
+                          <div className="px-4 py-3 text-sm text-[oklch(0.54_0.18_8)]">
+                            {locationSearchError}
+                          </div>
+                        ) : null}
+
+                        {!isSearchingLocations &&
+                        !locationSearchError &&
+                        locationSuggestions.length === 0 &&
+                        location.trim().length >= 2 &&
+                        !parseCoordinates(location) ? (
+                          <div className="px-4 py-3 text-sm text-muted-foreground">
+                            No matching places found yet.
+                          </div>
+                        ) : null}
+
+                        {!isSearchingLocations &&
+                        !locationSearchError &&
+                        locationSuggestions.length > 0 ? (
+                          <div className="py-2">
+                            {locationSuggestions.map((item) => (
+                              <button
+                                key={`${item.name}-${item.lat}-${item.lng}`}
+                                type="button"
+                                onMouseDown={(event) => event.preventDefault()}
+                                onClick={() => handleLocationSelect(item)}
+                                className="flex w-full items-start gap-3 px-4 py-3 text-left hover:bg-secondary"
+                              >
+                                <span className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-full bg-primary-soft text-primary">
+                                  <MapPin className="h-4 w-4" />
+                                </span>
+                                <span className="min-w-0">
+                                  <span className="block text-sm font-semibold text-foreground">
+                                    {item.name}
+                                  </span>
+                                  <span className="block text-xs leading-relaxed text-muted-foreground">
+                                    {item.address ||
+                                      formatCoordinates({
+                                        latitude: item.lat,
+                                        longitude: item.lng,
+                                      })}
+                                  </span>
+                                </span>
+                              </button>
+                            ))}
+                          </div>
+                        ) : null}
+                      </div>
+                    ) : null}
+                  </div>
+                  <Button
+                    type="button"
+                    onClick={handleUseMyLocation}
+                    className="rounded-xl whitespace-nowrap"
+                    disabled={isResolvingMyLocation || isDemoQuotaExceeded}
+                  >
+                    {isDemoQuotaExceeded
+                      ? "Demo Unavailable"
+                      : isResolvingMyLocation
+                        ? "Finding Location..."
+                        : "Use My Location"}
+                  </Button>
+                </div>
+                <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+                  Search by text, pick a suggestion, or paste raw GPS coordinates.
+                </p>
+              </FormField>
+
+              <FormField label="Photo">
+                <div className="space-y-3">
+                  <label className="flex cursor-pointer items-center justify-between gap-3 rounded-2xl border border-border bg-background px-4 py-4 shadow-[var(--shadow-soft)] transition-colors hover:bg-secondary/50">
+                    <span className="inline-flex items-center rounded-full bg-primary-soft px-4 py-2 text-sm font-semibold text-primary">
+                      Choose Photo
+                    </span>
+                    <span className="min-w-0 flex-1 text-right text-sm text-muted-foreground">
+                      {photoState.status === "idle" ? "No photo selected" : photoState.fileName}
+                    </span>
+                    <Input
+                      ref={photoInputRef}
+                      type="file"
+                      accept=".jpg,.jpeg,image/jpeg"
+                      onChange={handlePhotoUpload}
+                      className="sr-only"
+                    />
+                  </label>
+                  <p className="text-xs leading-relaxed text-muted-foreground">
+                    {DEMO_GPS_REQUIRED_MESSAGE}
+                  </p>
+
+                  {photoState.status !== "idle" ? (
+                    <div className="overflow-hidden rounded-2xl border border-border bg-background shadow-[var(--shadow-soft)]">
+                      <div className="flex items-center justify-between border-b border-border/70 bg-secondary/40 px-4 py-3">
+                        <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
+                          <Camera className="h-3.5 w-3.5" />
+                          Demo photo
+                        </div>
+                        <button
+                          type="button"
+                          onClick={handleRemovePhoto}
+                          className="inline-flex items-center gap-1 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-semibold text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                          Remove
+                        </button>
+                      </div>
+                      {photoState.previewUrl ? (
+                        <div className="aspect-[16/10] overflow-hidden bg-secondary">
+                          <img
+                            src={photoState.previewUrl}
+                            alt={photoState.fileName}
+                            className={cn(
+                              "h-full w-full object-cover",
+                              photoState.status === "missing-gps" ? "opacity-65" : "",
+                            )}
+                          />
+                        </div>
+                      ) : null}
+
+                      <div className="space-y-2 p-4">
+                        <p className="text-sm font-semibold text-foreground">
+                          {photoState.fileName}
+                        </p>
+
+                        {photoState.status === "reading" ? (
+                          <p className="text-sm text-muted-foreground">
+                            Reading GPS metadata from the photo...
+                          </p>
+                        ) : null}
+
+                        {photoState.status === "resolved" ? (
+                          <>
+                            <div className="inline-flex items-center gap-2 rounded-full bg-primary-soft px-3 py-1 text-sm font-semibold text-primary">
+                              <MapPin className="h-4 w-4" />
+                              {buildPlaceLabel(resolvedPhotoContext, photoState.coords)}
+                            </div>
+                            <p className="text-xs leading-relaxed text-muted-foreground">
+                              {resolvedPhotoContext?.placeName
+                                ? "Location detected via the PlaceEcho public API using the image GPS metadata."
+                                : "GPS coordinates were found in the image, but a place name could not be resolved right now."}
+                            </p>
+                          </>
+                        ) : null}
+
+                        {photoState.status === "missing-gps" ? (
+                          <p className="text-sm leading-relaxed text-[oklch(0.54_0.18_8)]">
+                            {DEMO_GPS_REQUIRED_MESSAGE}
+                          </p>
+                        ) : null}
+
+                        {photoState.status === "error" ? (
+                          <p className="text-sm leading-relaxed text-[oklch(0.54_0.18_8)]">
+                            {photoState.message}
+                          </p>
+                        ) : null}
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
+              </FormField>
+
+              <FormField label="Length">
+                <ToggleGroup
+                  type="single"
+                  value={length}
+                  onValueChange={(value) => {
+                    if (value) setLength(value);
+                  }}
+                  variant="outline"
+                  className="grid grid-cols-3 gap-2 rounded-2xl bg-background p-1"
+                  aria-label="Story length"
+                >
+                  {[
+                    { v: "short", l: "Short" },
+                    { v: "medium", l: "Medium" },
+                    { v: "long", l: "Long" },
+                  ].map((o) => (
+                    <ToggleGroupItem
+                      key={o.v}
+                      value={o.v}
+                      className="h-11 rounded-xl border border-border bg-background px-4 text-sm font-semibold text-foreground shadow-none hover:bg-background hover:text-foreground data-[state=on]:border-primary data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-[var(--shadow-soft)]"
+                      aria-label={o.l}
+                    >
+                      {o.l}
+                    </ToggleGroupItem>
+                  ))}
+                </ToggleGroup>
+              </FormField>
+
+              <FormField label="Experience">
+                <ToggleGroup
+                  type="single"
+                  value={experience}
+                  onValueChange={(value) => {
+                    if (value) setExperience(value);
+                  }}
+                  variant="outline"
+                  className="grid grid-cols-2 gap-3"
+                  aria-label="Experience"
+                >
+                  {[
+                    {
+                      v: "story",
+                      l: "Story",
+                      icon: BookText,
+                      tint: "bg-primary-soft text-primary",
+                    },
+                    {
+                      v: "historical",
+                      l: "Historical",
+                      icon: Landmark,
+                      tint: "bg-[oklch(0.97_0.04_85)] text-[oklch(0.48_0.16_72)]",
+                    },
+                    {
+                      v: "guide",
+                      l: "Guide",
+                      icon: Compass,
+                      tint: "bg-[oklch(0.96_0.04_230)] text-[oklch(0.45_0.13_235)]",
+                    },
+                    {
+                      v: "urban-legend",
+                      l: "Urban Legend",
+                      icon: Ghost,
+                      tint: "bg-[oklch(0.96_0.04_8)] text-[oklch(0.54_0.18_8)]",
+                    },
+                  ].map((o) => (
+                    <ToggleGroupItem
+                      key={o.v}
+                      value={o.v}
+                      className="h-auto min-h-14 flex-col items-start justify-center rounded-2xl border border-border bg-card px-3 py-2.5 text-left text-foreground shadow-[var(--shadow-soft)] hover:bg-card hover:text-foreground data-[state=on]:border-primary data-[state=on]:bg-[oklch(0.98_0.03_72)] data-[state=on]:text-foreground data-[state=on]:shadow-[var(--shadow-card)]"
+                      aria-label={o.l}
+                    >
+                      <span className="flex w-full items-center gap-2.5">
+                        <span
+                          className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg ${o.tint}`}
+                        >
+                          <o.icon className="h-4 w-4" />
+                        </span>
+                        <span className="text-sm leading-none font-bold">{o.l}</span>
+                      </span>
+                    </ToggleGroupItem>
+                  ))}
+                </ToggleGroup>
+              </FormField>
+
+              <FormField label="Language">
+                <ToggleGroup
+                  type="single"
+                  value={language}
+                  onValueChange={(value) => {
+                    if (value) setLanguage(value);
+                  }}
+                  className="grid grid-cols-3 gap-2"
+                  aria-label="Language"
+                >
+                  {languageOptions.map((option) => (
+                    <ToggleGroupItem
+                      key={option.value}
+                      value={option.value}
+                      className="h-12 justify-start rounded-xl border border-border bg-card px-3 text-left text-sm font-semibold text-foreground shadow-none hover:bg-card hover:text-foreground data-[state=on]:border-primary data-[state=on]:bg-[oklch(0.98_0.03_72)] data-[state=on]:text-foreground data-[state=on]:shadow-[var(--shadow-soft)]"
+                      aria-label={option.label}
+                    >
+                      <option.flag className="h-4 w-6 shrink-0 rounded-sm border border-border/60 shadow-none" />
+                      <span className="truncate">{option.label}</span>
+                    </ToggleGroupItem>
+                  ))}
+                </ToggleGroup>
+              </FormField>
+
+              {submitError ? (
+                <div
+                  className={cn(
+                    "rounded-2xl px-4 py-3 text-sm leading-relaxed",
+                    submitError.kind === "daily-quota"
+                      ? "border border-primary/20 bg-primary-soft text-foreground"
+                      : "border border-[oklch(0.9_0.05_8)] bg-[oklch(0.98_0.02_8)] text-[oklch(0.54_0.18_8)]",
+                  )}
+                >
+                  <p>{submitError.message}</p>
+                  {submitError.kind === "daily-quota" ? (
+                    <div className="mt-3">
+                      <a
+                        href={APP_URL}
+                        className="inline-flex items-center rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-[var(--shadow-soft)]"
+                      >
+                        Try the PlaceEcho App
+                      </a>
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
+
+              <Button
+                type="submit"
+                className="mt-2 w-full rounded-xl py-6 text-base gap-2"
+                disabled={isSubmitting || photoState.status === "reading" || isDemoQuotaExceeded}
+              >
+                <Sparkles className="h-4 w-4" />
+                {isDemoQuotaExceeded
+                  ? "Demo Unavailable"
+                  : isSubmitting
+                    ? "Generating..."
+                    : "Generate Story"}
+              </Button>
+            </div>
+          </form>
+        </div>
+
+        {demoResult?.story ? (
+          <div className="mt-10 overflow-hidden rounded-[2rem] border border-border bg-card shadow-[var(--shadow-card)]">
+            <div className="border-b border-border bg-gradient-to-br from-primary-soft via-[oklch(0.98_0.03_72)] to-white px-6 py-5 sm:px-8">
+              <div className="flex flex-wrap items-center gap-3">
+                <span className="inline-flex items-center gap-2 rounded-full bg-card px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-primary shadow-[var(--shadow-soft)]">
+                  <Sparkles className="h-3.5 w-3.5" />
+                  Live demo result
+                </span>
+                {demoResult.cached ? (
+                  <span className="text-xs font-semibold text-muted-foreground">
+                    Cached response
+                  </span>
+                ) : null}
+                {demoResult.degraded_mode ? (
+                  <span className="text-xs font-semibold text-muted-foreground">Degraded mode</span>
+                ) : null}
+              </div>
+              <h3 className="mt-4 text-2xl font-bold sm:text-3xl">{demoResult.story.title}</h3>
+              <p className="mt-2 text-sm text-muted-foreground">
+                {activeCoords
+                  ? buildPlaceLabel(demoResult.context ?? resolvedPhotoContext, activeCoords)
+                  : (demoResult.context?.placeName ?? "Generated from the PlaceEcho public API")}
+              </p>
+              {demoResult.story.summary ? (
+                <p className="mt-3 max-w-3xl text-sm leading-relaxed text-muted-foreground">
+                  {demoResult.story.summary}
+                </p>
+              ) : null}
+            </div>
+
+            <div className="grid gap-6 px-6 py-6 sm:px-8 lg:grid-cols-[1.2fr_0.8fr]">
+              <div className="space-y-4">
+                <div className="rounded-3xl bg-secondary/45 p-5">
+                  <div className="text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground">
+                    Story Text
+                  </div>
+                  <p className="mt-3 whitespace-pre-line text-sm leading-7 text-foreground/90">
+                    {demoResult.story.text ?? "The API returned the story without body text."}
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div className="rounded-3xl border border-border bg-card p-5 shadow-[var(--shadow-soft)]">
+                  <div className="text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground">
+                    Listen
+                  </div>
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      void toggleDemoPlayback();
+                    }}
+                    className="mt-4 w-full rounded-full"
+                  >
+                    {isDemoListening ? (
+                      <>
+                        <AudioLines className="h-4 w-4" /> Stop Listening
+                      </>
+                    ) : (
+                      <>
+                        <Play className="h-4 w-4 fill-current" /> Listen to Story
+                      </>
+                    )}
+                  </Button>
+                  <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
+                    {demoResult.story.audio_url
+                      ? "Play the generated audio version of this story."
+                      : demoListenMode === "speech" ||
+                          typeof window === "undefined" ||
+                          "speechSynthesis" in window
+                        ? "If audio wasn't generated, the demo uses your browser voice to read the story."
+                        : "Audio generation wasn't included in this result, and browser voice playback isn't available here."}
+                  </p>
+                  {demoResult.story.audio_url ? (
+                    <audio
+                      ref={demoAudioRef}
+                      controls
+                      className="mt-4 w-full"
+                      src={resolvePublicAssetUrl(demoResult.story.audio_url)}
+                      onPlay={() => {
+                        setIsDemoListening(true);
+                        setDemoListenMode("audio");
+                      }}
+                      onPause={() => {
+                        setIsDemoListening(false);
+                        setDemoListenMode(null);
+                      }}
+                      onEnded={() => {
+                        setIsDemoListening(false);
+                        setDemoListenMode(null);
+                      }}
+                    >
+                      Your browser does not support audio playback.
+                    </audio>
+                  ) : null}
+                </div>
+
+                <div className="rounded-3xl border border-border bg-card p-5 shadow-[var(--shadow-soft)]">
+                  <div className="text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground">
+                    Story Details
+                  </div>
+                  <div className="mt-4 space-y-3 text-sm">
+                    <div>
+                      <span className="font-semibold text-foreground">Mode:</span>{" "}
+                      <span className="text-muted-foreground">
+                        {demoResult.story.experience_mode ?? getExperienceMode(experience)}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="font-semibold text-foreground">Language:</span>{" "}
+                      <span className="text-muted-foreground">
+                        {demoResult.story.language ?? getLanguageCode(language)}
+                      </span>
+                    </div>
+                    {demoResult.context?.confidence ? (
+                      <div>
+                        <span className="font-semibold text-foreground">Location confidence:</span>{" "}
+                        <span className="text-muted-foreground">
+                          {Math.round(demoResult.context.confidence * 100)}%
+                        </span>
+                      </div>
+                    ) : null}
+                    {demoResult.story.share_url ? (
+                      <div>
+                        <span className="font-semibold text-foreground">Share URL:</span>{" "}
+                        <a
+                          href={resolvePublicAssetUrl(demoResult.story.share_url)}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="break-all text-primary underline decoration-primary/30 underline-offset-4"
+                        >
+                          {resolvePublicAssetUrl(demoResult.story.share_url)}
+                        </a>
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : null}
       </div>
     </section>
   );

@@ -8,6 +8,77 @@ import { Label } from "@/components/ui/label";
 import { PageShell } from "@/components/site-chrome";
 import { cn } from "@/lib/utils";
 
+const APP_URL = "https://app.placeecho.io";
+const PUBLIC_API_CLIENT_ID_KEY = "placeecho_public_client_id";
+const contactEnv = import.meta.env as Record<string, string | boolean | undefined>;
+const IS_DEMO_MODE =
+  contactEnv.MODE?.toString().toLowerCase() === "demo" ||
+  contactEnv.VITE_DEMO_MODE?.toString().toLowerCase() === "true";
+const PUBLIC_API_BASE_URL = IS_DEMO_MODE
+  ? "http://127.0.0.1:8002/public/v1"
+  : ((import.meta.env.VITE_PUBLIC_API_BASE_URL as string | undefined) ?? `${APP_URL}/public/v1`);
+
+type ContactFormState = {
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+};
+
+type ContactSubmissionResponse = {
+  ok?: boolean;
+  queued?: boolean;
+  degraded_mode?: boolean;
+};
+
+type ContactApiError = {
+  error?: string;
+  message?: string;
+  request_id?: string;
+};
+
+function getPublicClientId() {
+  if (typeof window === "undefined") return "placeecho-site-ssr";
+
+  const existing = window.localStorage.getItem(PUBLIC_API_CLIENT_ID_KEY);
+  if (existing) return existing;
+
+  const nextValue = window.crypto?.randomUUID?.() ?? `placeecho-${Date.now()}`;
+  window.localStorage.setItem(PUBLIC_API_CLIENT_ID_KEY, nextValue);
+  return nextValue;
+}
+
+async function publicApi(path: string, options: RequestInit = {}) {
+  const headers = new Headers(options.headers ?? {});
+  headers.set("X-PlaceEcho-Client-Id", getPublicClientId());
+
+  return fetch(`${PUBLIC_API_BASE_URL}${path}`, {
+    ...options,
+    headers,
+  });
+}
+
+async function readContactApiError(response: Response) {
+  try {
+    const payload = (await response.json()) as ContactApiError;
+
+    if (payload.error === "PUBLIC_DAILY_LIMIT_EXCEEDED") {
+      return "The message form is unavailable right now. Please try again later or email us directly.";
+    }
+
+    if (payload.error === "PUBLIC_RATE_LIMITED") {
+      return "Too many requests right now. Please wait a moment and try again.";
+    }
+
+    const requestId = payload.request_id ? ` Request ID: ${payload.request_id}.` : "";
+    return payload.message
+      ? `${payload.message}${requestId}`
+      : `The message request failed with status ${response.status}.${requestId}`;
+  } catch {
+    return `The message request failed with status ${response.status}.`;
+  }
+}
+
 export const Route = createFileRoute("/contact")({
   head: () => ({
     meta: [
@@ -25,7 +96,15 @@ export const Route = createFileRoute("/contact")({
 });
 
 function ContactPage() {
+  const [form, setForm] = useState<ContactFormState>({
+    name: "",
+    email: "",
+    subject: "",
+    message: "",
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [sent, setSent] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const contactMethods = [
     {
       icon: Mail,
@@ -51,6 +130,69 @@ function ContactPage() {
       iconClass: "text-[oklch(0.48_0.14_230)]",
     },
   ] as const;
+
+  const handleFieldChange =
+    (field: keyof ContactFormState) =>
+    (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      setForm((current) => ({
+        ...current,
+        [field]: event.target.value,
+      }));
+      setSent(false);
+      setSubmitError(null);
+    };
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    setIsSubmitting(true);
+    setSent(false);
+    setSubmitError(null);
+
+    try {
+      const trimmedSubject = form.subject.trim();
+      const message = trimmedSubject
+        ? `Subject: ${trimmedSubject}\n\n${form.message.trim()}`
+        : form.message.trim();
+
+      const response = await publicApi("/site/contact", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: form.name.trim(),
+          email: form.email.trim(),
+          message,
+          source: "contact_page",
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(await readContactApiError(response));
+      }
+
+      const result = (await response.json()) as ContactSubmissionResponse;
+
+      if (!result.ok || !result.queued) {
+        throw new Error("Your message could not be queued right now. Please try again later.");
+      }
+
+      setSent(true);
+      setForm({
+        name: "",
+        email: "",
+        subject: "",
+        message: "",
+      });
+    } catch (error) {
+      setSubmitError(
+        error instanceof Error ? error.message : "Something went wrong while sending your message.",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <PageShell>
@@ -97,10 +239,7 @@ function ContactPage() {
           </div>
 
           <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              setSent(true);
-            }}
+            onSubmit={handleSubmit}
             className="rounded-3xl border border-border bg-card p-6 shadow-[var(--shadow-card)] sm:p-8"
           >
             <h2 className="text-xl font-bold">Send us a message</h2>
@@ -115,6 +254,8 @@ function ContactPage() {
                 <Input
                   id="c-name"
                   required
+                  value={form.name}
+                  onChange={handleFieldChange("name")}
                   placeholder="Your name"
                   className="mt-1.5 rounded-xl bg-background"
                 />
@@ -127,6 +268,8 @@ function ContactPage() {
                   id="c-email"
                   type="email"
                   required
+                  value={form.email}
+                  onChange={handleFieldChange("email")}
                   placeholder="you@example.com"
                   className="mt-1.5 rounded-xl bg-background"
                 />
@@ -138,6 +281,8 @@ function ContactPage() {
               </Label>
               <Input
                 id="c-subject"
+                value={form.subject}
+                onChange={handleFieldChange("subject")}
                 placeholder="What is this about?"
                 className="mt-1.5 rounded-xl bg-background"
               />
@@ -150,12 +295,24 @@ function ContactPage() {
                 id="c-msg"
                 required
                 rows={5}
+                value={form.message}
+                onChange={handleFieldChange("message")}
                 placeholder="Tell us a bit more..."
                 className="mt-1.5 rounded-xl bg-background"
               />
             </div>
-            <Button type="submit" className="mt-6 w-full rounded-xl py-6 text-base gap-2">
+            {submitError ? (
+              <div className="mt-4 rounded-2xl border border-[oklch(0.9_0.05_8)] bg-[oklch(0.98_0.02_8)] px-4 py-3 text-sm leading-relaxed text-[oklch(0.54_0.18_8)]">
+                {submitError}
+              </div>
+            ) : null}
+            <Button
+              type="submit"
+              className="mt-6 w-full rounded-xl py-6 text-base gap-2"
+              disabled={isSubmitting}
+            >
               <Send className="h-4 w-4" /> Send message
+              {isSubmitting ? "..." : ""}
             </Button>
             {sent && (
               <p className="mt-3 text-center text-sm text-accent-foreground">
