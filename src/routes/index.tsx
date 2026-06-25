@@ -654,6 +654,27 @@ function buildPlaceLabel(context: DemoLocationContext | null, coords: PhotoCoord
   return Array.from(new Set(parts)).join(", ") || formatCoordinates(coords);
 }
 
+function getCurrentBrowserCoordinates() {
+  return new Promise<PhotoCoordinates>((resolve, reject) => {
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        resolve({
+          latitude: Number(position.coords.latitude.toFixed(6)),
+          longitude: Number(position.coords.longitude.toFixed(6)),
+        });
+      },
+      () => {
+        reject(new Error("LOCATION_ACCESS_FAILED"));
+      },
+      {
+        enableHighAccuracy: true,
+        maximumAge: 0,
+        timeout: 10000,
+      },
+    );
+  });
+}
+
 function resolvePublicAssetUrl(value: string) {
   try {
     return new URL(value, `${PUBLIC_API_BASE_URL}/`).toString();
@@ -773,6 +794,9 @@ function TryDemo() {
   const [isLocationFocused, setIsLocationFocused] = useState(false);
   const [isDemoListening, setIsDemoListening] = useState(false);
   const [demoListenMode, setDemoListenMode] = useState<"audio" | "speech" | null>(null);
+  const [isResolvingMyLocation, setIsResolvingMyLocation] = useState(false);
+  const [isDemoQuotaExceeded, setIsDemoQuotaExceeded] = useState(false);
+  const locationRequestIdRef = useRef(0);
   const demoAudioRef = useRef<HTMLAudioElement | null>(null);
   const demoUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
   const photoInputRef = useRef<HTMLInputElement | null>(null);
@@ -801,30 +825,83 @@ function TryDemo() {
     setDemoListenMode(null);
   }
 
+  function clearTransientDemoError() {
+    setSubmitError((current) => (current?.kind === "daily-quota" ? current : null));
+  }
+
+  function applyDemoUiError(error: unknown) {
+    const uiError = toDemoUiError(error);
+
+    if (uiError.kind === "daily-quota") {
+      stopDemoPlayback();
+      setIsDemoQuotaExceeded(true);
+      setLocation("");
+      setSelectedCoords(null);
+      setLocationSuggestions([]);
+      setLocationSearchError(null);
+      setIsLocationFocused(false);
+      setDemoResult(null);
+    }
+
+    setSubmitError(uiError);
+    return uiError;
+  }
+
   const handleUseMyLocation = () => {
-    if (!navigator.geolocation) return;
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        const coords = {
-          latitude: Number(pos.coords.latitude.toFixed(6)),
-          longitude: Number(pos.coords.longitude.toFixed(6)),
-        };
+    if (isDemoQuotaExceeded) return;
+
+    if (!navigator.geolocation) {
+      setSubmitError({
+        kind: "default",
+        message:
+          "Location access isn't available in this browser. Search for a place or upload a photo instead.",
+      });
+      return;
+    }
+
+    const requestId = locationRequestIdRef.current + 1;
+    locationRequestIdRef.current = requestId;
+    setIsResolvingMyLocation(true);
+    clearTransientDemoError();
+    setLocationSuggestions([]);
+    setLocationSearchError(null);
+    setDemoResult(null);
+
+    void (async () => {
+      try {
+        const coords = await getCurrentBrowserCoordinates();
+        if (requestId !== locationRequestIdRef.current) return;
+
         setSelectedCoords(coords);
-        setLocation(formatCoordinates(coords));
-        setLocationSuggestions([]);
-        setLocationSearchError(null);
-        setSubmitError(null);
 
         try {
           const context = await fetchContextFromGps(coords, languageCode);
+          if (requestId !== locationRequestIdRef.current) return;
+
           setLocation(buildPlaceLabel(context, coords));
           setDemoResult((current) => (current ? { ...current, context } : current));
         } catch (error) {
-          setSubmitError(toDemoUiError(error));
+          if (requestId !== locationRequestIdRef.current) return;
+
+          const uiError = applyDemoUiError(error);
+          if (uiError.kind !== "daily-quota") {
+            setLocation(formatCoordinates(coords));
+          }
         }
-      },
-      () => {},
-    );
+      } catch {
+        if (requestId !== locationRequestIdRef.current) return;
+
+        setSubmitError({
+          kind: "default",
+          message:
+            "We couldn't access your location. Please allow GPS access, search for a place, or upload a photo.",
+        });
+      } finally {
+        if (requestId === locationRequestIdRef.current) {
+          setIsResolvingMyLocation(false);
+        }
+      }
+    })();
   };
 
   useEffect(() => {
@@ -855,7 +932,13 @@ function TryDemo() {
     const parsedCoords = parseCoordinates(trimmedQuery);
     let isCancelled = false;
 
-    if (!isLocationFocused || !trimmedQuery || trimmedQuery.length < 2 || parsedCoords) {
+    if (
+      isDemoQuotaExceeded ||
+      !isLocationFocused ||
+      !trimmedQuery ||
+      trimmedQuery.length < 2 ||
+      parsedCoords
+    ) {
       setIsSearchingLocations(false);
       setLocationSearchError(null);
       setLocationSuggestions([]);
@@ -873,10 +956,22 @@ function TryDemo() {
           setLocationSuggestions(items);
         } catch (error) {
           if (isCancelled) return;
+          const uiError = toDemoUiError(error);
+          if (uiError.kind === "daily-quota") {
+            stopDemoPlayback();
+            setIsDemoQuotaExceeded(true);
+            setLocation("");
+            setSelectedCoords(null);
+            setLocationSuggestions([]);
+            setLocationSearchError(null);
+            setIsLocationFocused(false);
+            setDemoResult(null);
+            setSubmitError(uiError);
+            return;
+          }
+
           setLocationSuggestions([]);
-          setLocationSearchError(
-            error instanceof Error ? error.message : "Could not search locations right now.",
-          );
+          setLocationSearchError(uiError.message);
         } finally {
           if (!isCancelled) {
             setIsSearchingLocations(false);
@@ -889,7 +984,7 @@ function TryDemo() {
       isCancelled = true;
       window.clearTimeout(timeoutId);
     };
-  }, [isLocationFocused, languageCode, location]);
+  }, [isDemoQuotaExceeded, isLocationFocused, languageCode, location]);
 
   const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -901,7 +996,7 @@ function TryDemo() {
 
     const previewUrl = URL.createObjectURL(file);
     setPhotoState({ status: "reading", file, fileName: file.name, previewUrl });
-    setSubmitError(null);
+    clearTransientDemoError();
     setDemoResult(null);
 
     try {
@@ -925,7 +1020,11 @@ function TryDemo() {
       let context: DemoLocationContext | null = null;
       try {
         context = await fetchContextFromGps(coords, languageCode);
-      } catch {
+      } catch (error) {
+        const uiError = toDemoUiError(error);
+        if (uiError.kind === "daily-quota") {
+          applyDemoUiError(error);
+        }
         context = null;
       }
 
@@ -960,7 +1059,7 @@ function TryDemo() {
     }
     setPhotoState({ status: "idle" });
     setDemoResult(null);
-    setSubmitError(null);
+    clearTransientDemoError();
   };
 
   const handleLocationChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -969,7 +1068,7 @@ function TryDemo() {
 
     setLocation(nextValue);
     setSelectedCoords(parsedCoords);
-    setSubmitError(null);
+    clearTransientDemoError();
     setLocationSearchError(null);
     setDemoResult(null);
   };
@@ -984,13 +1083,15 @@ function TryDemo() {
     setSelectedCoords(coords);
     setLocationSuggestions([]);
     setIsLocationFocused(false);
-    setSubmitError(null);
+    clearTransientDemoError();
     setLocationSearchError(null);
     setDemoResult(null);
   };
 
   const handleGenerateStory = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
+    if (isDemoQuotaExceeded) return;
 
     const coords =
       photoState.status === "resolved"
@@ -1015,7 +1116,7 @@ function TryDemo() {
     }
 
     setIsSubmitting(true);
-    setSubmitError(null);
+    clearTransientDemoError();
     setDemoResult(null);
 
     try {
@@ -1067,7 +1168,7 @@ function TryDemo() {
         context: result.context ?? context,
       });
     } catch (error) {
-      setSubmitError(toDemoUiError(error));
+      applyDemoUiError(error);
     } finally {
       setIsSubmitting(false);
     }
@@ -1245,8 +1346,13 @@ function TryDemo() {
                     type="button"
                     onClick={handleUseMyLocation}
                     className="rounded-xl whitespace-nowrap"
+                    disabled={isResolvingMyLocation || isDemoQuotaExceeded}
                   >
-                    Use My Location
+                    {isDemoQuotaExceeded
+                      ? "Demo Unavailable"
+                      : isResolvingMyLocation
+                        ? "Finding Location..."
+                        : "Use My Location"}
                   </Button>
                 </div>
                 <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
@@ -1480,10 +1586,14 @@ function TryDemo() {
               <Button
                 type="submit"
                 className="mt-2 w-full rounded-xl py-6 text-base gap-2"
-                disabled={isSubmitting || photoState.status === "reading"}
+                disabled={isSubmitting || photoState.status === "reading" || isDemoQuotaExceeded}
               >
                 <Sparkles className="h-4 w-4" />
-                {isSubmitting ? "Generating..." : "Generate Story"}
+                {isDemoQuotaExceeded
+                  ? "Demo Unavailable"
+                  : isSubmitting
+                    ? "Generating..."
+                    : "Generate Story"}
               </Button>
             </div>
           </form>
