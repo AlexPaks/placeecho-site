@@ -9,7 +9,6 @@ import { PageShell } from "@/components/site-chrome";
 import { cn } from "@/lib/utils";
 
 const APP_URL = "https://app.placeecho.io";
-const API_URL = "https://api.placeecho.io";
 const PUBLIC_API_CLIENT_ID_KEY = "placeecho_public_client_id";
 const contactEnv = import.meta.env as Record<string, string | boolean | undefined>;
 const IS_DEMO_MODE =
@@ -17,7 +16,7 @@ const IS_DEMO_MODE =
   contactEnv.VITE_DEMO_MODE?.toString().toLowerCase() === "true";
 const PUBLIC_API_BASE_URL = IS_DEMO_MODE
   ? "http://127.0.0.1:8002/public/v1"
-  : ((import.meta.env.VITE_PUBLIC_API_BASE_URL as string | undefined) ?? `${API_URL}/public/v1`);
+  : ((import.meta.env.VITE_PUBLIC_API_BASE_URL as string | undefined) ?? "/public/v1");
 
 type ContactFormState = {
   name: string;
