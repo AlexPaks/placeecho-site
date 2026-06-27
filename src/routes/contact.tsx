@@ -16,7 +16,7 @@ const IS_DEMO_MODE =
   contactEnv.VITE_DEMO_MODE?.toString().toLowerCase() === "true";
 const PUBLIC_API_BASE_URL = IS_DEMO_MODE
   ? "http://127.0.0.1:8002/public/v1"
-  : ((import.meta.env.VITE_PUBLIC_API_BASE_URL as string | undefined) ?? `${APP_URL}/public/v1`);
+  : ((import.meta.env.VITE_PUBLIC_API_BASE_URL as string | undefined) ?? "/public/v1");
 
 type ContactFormState = {
   name: string;
