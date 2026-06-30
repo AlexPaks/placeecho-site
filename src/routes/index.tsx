@@ -12,13 +12,10 @@ import {
   Landmark,
   Compass,
   Ghost,
-  Bell,
-  Menu,
   Sparkles,
   Headphones,
   ShieldCheck,
   Users,
-  Lightbulb,
   Star,
   Heart,
   Map as MapIcon,
@@ -36,8 +33,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { HOME_ABOUT_HE, HOME_COMMUNITY_HE, HOME_COPY } from "@/lib/home-copy";
+import { useLocale, useLocalizedDocument } from "@/lib/locale";
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import heroBg from "@/assets/hero-bg.jpg";
@@ -51,6 +49,7 @@ import heroEgypt from "@/assets/hero-egypt.png";
 import locationPickerScreen from "@/assets/location-picker-screen.jpeg";
 import myStoriesScreen from "@/assets/my-stories-screen.jpeg";
 import placeechoPostcard from "@/assets/placeecho-postcard.png";
+import photoGpsScreen from "@/assets/photo-gps-screen.jpeg";
 import storyAudioScreen from "@/assets/story-audio-screen.jpeg";
 
 const APP_URL = "https://app.placeecho.io";
@@ -76,6 +75,14 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
+  const { locale } = useLocale();
+  const copy = HOME_COPY[locale];
+
+  useLocalizedDocument({
+    title: copy.metaTitle,
+    description: copy.metaDescription,
+  });
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Header />
@@ -97,34 +104,36 @@ function Index() {
 
 /* ---------- Hero ---------- */
 function Hero() {
+  const { locale } = useLocale();
+  const copy = HOME_COPY[locale].hero;
   const features = [
     {
       icon: MapPin,
-      label: "Current Location",
+      label: copy.features[0],
       tint: "bg-primary-soft",
       iconClass: "text-primary",
     },
     {
       icon: Globe,
-      label: "Anywhere in the World",
+      label: copy.features[1],
       tint: "bg-[oklch(0.95_0.04_220)]",
       iconClass: "text-[oklch(0.48_0.14_230)]",
     },
     {
       icon: Camera,
-      label: "Photo Discovery",
+      label: copy.features[2],
       tint: "bg-[oklch(0.96_0.04_160)]",
       iconClass: "text-[oklch(0.45_0.13_165)]",
     },
     {
       icon: AudioLines,
-      label: "AI Narration",
+      label: copy.features[3],
       tint: "bg-[oklch(0.96_0.04_30)]",
       iconClass: "text-[oklch(0.55_0.16_35)]",
     },
     {
       icon: Languages,
-      label: "Multiple Languages",
+      label: copy.features[4],
       tint: "bg-[oklch(0.96_0.04_300)]",
       iconClass: "text-[oklch(0.48_0.16_300)]",
     },
@@ -147,25 +156,20 @@ function Hero() {
       <div className="relative mx-auto grid max-w-7xl gap-12 px-4 py-16 sm:px-6 md:py-24 lg:grid-cols-2 lg:items-center">
         <div>
           <span className="inline-flex items-center gap-2 rounded-full bg-accent-soft px-3 py-1 text-xs font-semibold text-accent-foreground">
-            <Sparkles className="h-3.5 w-3.5" /> AI-powered place experiences
+            <Sparkles className="h-3.5 w-3.5" /> {copy.badge}
           </span>
           <h1 className="mt-5 text-4xl font-bold leading-[1.05] sm:text-5xl md:text-6xl">
-            Every Place Has
+            {copy.titleLine1}
             <br />
-            More Than <span className="text-primary italic">One Story</span>
+            {copy.titleLine2} <span className="text-primary italic">{copy.titleAccent}</span>
           </h1>
-          <p className="mt-5 max-w-xl text-base text-muted-foreground sm:text-lg">
-            PlaceEcho transforms any location into a personalized AI-powered experience:{" "}
-            <span className="text-foreground/80 font-medium">immersive stories</span>,{" "}
-            <span className="text-foreground/80 font-medium">historical journeys</span>, local
-            guides, and urban legends — with natural audio in multiple languages.
-          </p>
+          <p className="mt-5 max-w-xl text-base text-muted-foreground sm:text-lg">{copy.body}</p>
           <div className="mt-7 flex flex-wrap gap-3">
             <Button asChild size="lg" className="rounded-full px-6 shadow-[var(--shadow-card)]">
-              <a href={APP_URL}>Try PlaceEcho Free</a>
+              <a href={APP_URL}>{copy.ctaPrimary}</a>
             </Button>
             <Button size="lg" variant="outline" className="rounded-full px-6 gap-2 bg-card">
-              <Play className="h-4 w-4 fill-primary text-primary" /> Watch Demo
+              <Play className="h-4 w-4 fill-primary text-primary" /> {copy.ctaSecondary}
             </Button>
           </div>
           <ul className="mt-10 grid grid-cols-3 gap-4 sm:grid-cols-5">
@@ -210,121 +214,23 @@ function Hero() {
 
 /* ---------- Phone mockup ---------- */
 function PhoneMock() {
+  const { locale } = useLocale();
+
   return (
     <div className="relative">
       <div className="absolute -inset-6 -z-10 rounded-[3rem] bg-gradient-to-br from-primary/20 via-accent/10 to-transparent blur-2xl" />
       <div className="relative w-[300px] overflow-hidden rounded-[2.5rem] border-[10px] border-foreground/90 bg-background shadow-[0_30px_60px_-20px_rgba(0,0,0,0.35)] sm:w-[340px]">
         <img
           src={createScreen}
-          alt="PlaceEcho mobile app create screen"
+          alt={
+            locale === "he"
+              ? "\u05de\u05e1\u05da \u05d4\u05d9\u05e6\u05d9\u05e8\u05d4 \u05d1\u05d0\u05e4\u05dc\u05d9\u05e7\u05e6\u05d9\u05d9\u05ea PlaceEcho"
+              : "PlaceEcho mobile app create screen"
+          }
           loading="eager"
           className="block h-auto w-full"
         />
-        <div className="hidden">
-          <div className="absolute left-1/2 top-2 z-10 h-5 w-24 -translate-x-1/2 rounded-full bg-foreground/90" />
-          <div className="overflow-hidden rounded-[1.8rem] bg-background">
-            <div className="flex items-center justify-between px-4 pt-6 pb-2 text-[10px] font-semibold">
-              <span>12:56</span>
-              <span className="flex gap-1 opacity-70">●●● ▮</span>
-            </div>
-            <div className="flex items-center justify-between px-4 py-2">
-              <div className="flex items-center gap-1.5">
-                <span className="grid h-6 w-6 place-items-center rounded-lg bg-primary text-primary-foreground">
-                  <BookOpen className="h-3 w-3" />
-                </span>
-                <span className="text-xs font-bold">PlaceEcho</span>
-              </div>
-              <div className="flex items-center gap-1.5 text-foreground/60">
-                <Bell className="h-3.5 w-3.5" />
-                <span className="grid h-5 w-5 place-items-center rounded-full bg-primary text-[9px] font-bold text-primary-foreground">
-                  A
-                </span>
-              </div>
-            </div>
-            <div className="space-y-2 px-3 pb-3">
-              <MockField
-                icon={<MapPin className="h-3 w-3" />}
-                label="CURRENT LOCATION"
-                value="Mediterranean Courtyard"
-              />
-              <div className="rounded-xl border border-border bg-card p-2.5">
-                <div className="flex items-center gap-1.5 text-[9px] font-bold uppercase text-primary">
-                  <MapPin className="h-3 w-3" /> Pick location on map
-                </div>
-              </div>
-              <MockField
-                icon={<Camera className="h-3 w-3" />}
-                label="ADD A PHOTO"
-                value="Helps pick richer details"
-              />
-              <MockField
-                icon={<Landmark className="h-3 w-3" />}
-                label="CURRENT EXPERIENCE"
-                value="Historical"
-              />
-              <div className="grid place-items-center py-3">
-                <div className="grid h-20 w-20 place-items-center rounded-full bg-primary text-primary-foreground shadow-[0_10px_30px_-8px_rgba(220,120,40,0.55)]">
-                  <div className="text-center">
-                    <Sparkles className="mx-auto h-4 w-4" />
-                    <div className="mt-0.5 text-[9px] font-bold leading-tight">
-                      Generate
-                      <br />
-                      story
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="rounded-xl bg-secondary p-2">
-                <div className="mb-1.5 flex items-center justify-between text-[8px] font-bold uppercase">
-                  <span>Try these places</span>
-                  <span className="text-primary">See all ›</span>
-                </div>
-                <div className="flex gap-1.5">
-                  <div className="h-12 flex-1 rounded-lg bg-gradient-to-br from-primary/70 to-primary" />
-                  <div className="h-12 flex-1 rounded-lg bg-gradient-to-br from-accent/70 to-accent" />
-                </div>
-              </div>
-            </div>
-            <div className="flex items-center justify-around border-t border-border py-2 text-[9px] font-medium text-foreground/60">
-              <span className="flex flex-col items-center gap-0.5 text-primary">
-                <Sparkles className="h-3.5 w-3.5" />
-                Create
-              </span>
-              <span className="flex flex-col items-center gap-0.5">
-                <BookOpen className="h-3.5 w-3.5" />
-                Stories
-              </span>
-              <span className="flex flex-col items-center gap-0.5">
-                <AudioLines className="h-3.5 w-3.5" />
-                Settings
-              </span>
-              <span className="flex flex-col items-center gap-0.5">
-                <Menu className="h-3.5 w-3.5" />
-                Menu
-              </span>
-            </div>
-          </div>
-        </div>
       </div>
-    </div>
-  );
-}
-
-function MockField({
-  icon,
-  label,
-  value,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="rounded-xl border border-border bg-card p-2.5">
-      <div className="flex items-center gap-1.5 text-[9px] font-bold uppercase text-muted-foreground">
-        {icon} {label}
-      </div>
-      <div className="mt-0.5 text-xs font-semibold text-foreground">{value}</div>
     </div>
   );
 }
@@ -425,8 +331,6 @@ type LocationSearchResponse = {
   items?: LocationSearchItem[];
 };
 
-const DEMO_GPS_REQUIRED_MESSAGE =
-  "For this demo, please choose a photo with GPS metadata so we can show where it was taken. In the full PlaceEcho app, it also works without GPS.";
 const PUBLIC_API_CLIENT_ID_KEY = "placeecho_public_client_id";
 const demoEnv = import.meta.env as Record<string, string | boolean | undefined>;
 const IS_DEMO_MODE =
@@ -614,13 +518,12 @@ async function readApiError(response: Response) {
   }
 }
 
-function toDemoUiError(error: unknown): DemoUiError {
+function toDemoUiError(error: unknown, copy: (typeof HOME_COPY)["en"]["demo"]): DemoUiError {
   if (error instanceof DemoRequestError) {
     if (error.code === "PUBLIC_DAILY_LIMIT_EXCEEDED") {
       return {
         kind: "daily-quota",
-        message:
-          "The public demo is unavailable right now. Try the full PlaceEcho app to keep exploring places and generating stories.",
+        message: copy.errors.quota,
       };
     }
 
@@ -640,7 +543,7 @@ function toDemoUiError(error: unknown): DemoUiError {
 
   return {
     kind: "default",
-    message: "Something went wrong while using the demo.",
+    message: copy.errors.generic,
   };
 }
 
@@ -778,11 +681,14 @@ async function searchLocations(query: string, languageCode: string, limit = 5) {
 
 /* ---------- Try Demo ---------- */
 function TryDemo() {
-  const checks = ["Pick a place or upload a photo", "Choose an experience", "Generate and listen"];
+  const { locale, dir } = useLocale();
+  const copy = HOME_COPY[locale].demo;
+  const checks = copy.checks;
+  const isRtl = dir === "rtl";
   const [location, setLocation] = useState("");
   const [length, setLength] = useState("short");
   const [experience, setExperience] = useState("story");
-  const [language, setLanguage] = useState("english");
+  const [language, setLanguage] = useState(locale === "he" ? "hebrew" : "english");
   const [photoState, setPhotoState] = useState<DemoPhotoState>({ status: "idle" });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<DemoUiError | null>(null);
@@ -801,12 +707,12 @@ function TryDemo() {
   const demoUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
   const photoInputRef = useRef<HTMLInputElement | null>(null);
   const languageOptions = [
-    { value: "english", label: "English", flag: UKFlag },
-    { value: "german", label: "German", flag: GermanyFlag },
-    { value: "hebrew", label: "Hebrew", flag: IsraelFlag },
-    { value: "french", label: "French", flag: FranceFlag },
-    { value: "russian", label: "Russian", flag: RussiaFlag },
-    { value: "spanish", label: "Spanish", flag: SpainFlag },
+    { value: "english", label: copy.languageOptions.english, flag: UKFlag },
+    { value: "german", label: copy.languageOptions.german, flag: GermanyFlag },
+    { value: "hebrew", label: copy.languageOptions.hebrew, flag: IsraelFlag },
+    { value: "french", label: copy.languageOptions.french, flag: FranceFlag },
+    { value: "russian", label: copy.languageOptions.russian, flag: RussiaFlag },
+    { value: "spanish", label: copy.languageOptions.spanish, flag: SpainFlag },
   ] as const;
   const languageCode = getLanguageCode(language);
 
@@ -830,7 +736,7 @@ function TryDemo() {
   }
 
   function applyDemoUiError(error: unknown) {
-    const uiError = toDemoUiError(error);
+    const uiError = toDemoUiError(error, copy);
 
     if (uiError.kind === "daily-quota") {
       stopDemoPlayback();
@@ -853,8 +759,7 @@ function TryDemo() {
     if (!navigator.geolocation) {
       setSubmitError({
         kind: "default",
-        message:
-          "Location access isn't available in this browser. Search for a place or upload a photo instead.",
+        message: copy.errors.locationUnavailable,
       });
       return;
     }
@@ -893,8 +798,7 @@ function TryDemo() {
 
         setSubmitError({
           kind: "default",
-          message:
-            "We couldn't access your location. Please allow GPS access, search for a place, or upload a photo.",
+          message: copy.errors.locationFailed,
         });
       } finally {
         if (requestId === locationRequestIdRef.current) {
@@ -956,7 +860,7 @@ function TryDemo() {
           setLocationSuggestions(items);
         } catch (error) {
           if (isCancelled) return;
-          const uiError = toDemoUiError(error);
+          const uiError = toDemoUiError(error, copy);
           if (uiError.kind === "daily-quota") {
             stopDemoPlayback();
             setIsDemoQuotaExceeded(true);
@@ -984,7 +888,7 @@ function TryDemo() {
       isCancelled = true;
       window.clearTimeout(timeoutId);
     };
-  }, [isDemoQuotaExceeded, isLocationFocused, languageCode, location]);
+  }, [copy, isDemoQuotaExceeded, isLocationFocused, languageCode, location]);
 
   const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -1021,7 +925,7 @@ function TryDemo() {
       try {
         context = await fetchContextFromGps(coords, languageCode);
       } catch (error) {
-        const uiError = toDemoUiError(error);
+        const uiError = toDemoUiError(error, copy);
         if (uiError.kind === "daily-quota") {
           applyDemoUiError(error);
         }
@@ -1046,7 +950,7 @@ function TryDemo() {
         file,
         fileName: file.name,
         previewUrl,
-        message: "We could not read this image. Please try a JPG photo with GPS metadata.",
+        message: copy.photoError,
       });
     } finally {
       event.target.value = "";
@@ -1101,7 +1005,7 @@ function TryDemo() {
     if (photoState.status === "missing-gps") {
       setSubmitError({
         kind: "default",
-        message: DEMO_GPS_REQUIRED_MESSAGE,
+        message: copy.gpsRequired,
       });
       return;
     }
@@ -1109,8 +1013,7 @@ function TryDemo() {
     if (!coords) {
       setSubmitError({
         kind: "default",
-        message:
-          "To use the demo, choose a location or upload a photo. You can search for a place, use My Location, or add a photo with GPS.",
+        message: copy.errors.locationRequired,
       });
       return;
     }
@@ -1193,7 +1096,7 @@ function TryDemo() {
       } catch {
         setSubmitError({
           kind: "default",
-          message: "We couldn't start audio playback right now. Please try again.",
+          message: copy.errors.playback,
         });
       }
       return;
@@ -1202,7 +1105,7 @@ function TryDemo() {
     if (typeof window === "undefined" || !("speechSynthesis" in window) || !story.text) {
       setSubmitError({
         kind: "default",
-        message: "Audio playback isn't available for this demo result right now.",
+        message: copy.errors.noPlayback,
       });
       return;
     }
@@ -1245,10 +1148,8 @@ function TryDemo() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <div className="grid gap-10 md:grid-cols-2 md:items-center">
           <div>
-            <h2 className="text-3xl font-bold sm:text-4xl">Try the Demo</h2>
-            <p className="mt-3 max-w-md text-muted-foreground">
-              See how PlaceEcho turns any place into an unforgettable story experience.
-            </p>
+            <h2 className="text-3xl font-bold sm:text-4xl">{copy.title}</h2>
+            <p className="mt-3 max-w-md text-muted-foreground">{copy.intro}</p>
             <ul className="mt-6 space-y-3">
               {checks.map((c) => (
                 <li key={c} className="flex items-center gap-3 text-sm font-medium">
@@ -1260,19 +1161,24 @@ function TryDemo() {
               ))}
             </ul>
             <Button asChild size="lg" className="mt-7 rounded-full px-6">
-              <a href="#try-demo">Try the Demo</a>
+              <a href="#try-demo">{copy.cta}</a>
             </Button>
           </div>
           <form
             onSubmit={handleGenerateStory}
             className="mx-auto w-full max-w-md rounded-3xl border border-border bg-card p-6 shadow-[var(--shadow-card)]"
           >
-            <h3 className="mb-5 text-center text-xl font-bold">Try the Demo</h3>
+            <h3 className="mb-5 text-center text-xl font-bold">{copy.formTitle}</h3>
             <div className="space-y-5">
-              <FormField label="Search Place">
+              <FormField label={copy.searchLabel}>
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-start">
                   <div className="relative flex-1">
-                    <MapPin className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-primary" />
+                    <MapPin
+                      className={cn(
+                        "pointer-events-none absolute top-1/2 h-4 w-4 -translate-y-1/2 text-primary",
+                        isRtl ? "right-3" : "left-3",
+                      )}
+                    />
                     <Input
                       type="text"
                       value={location}
@@ -1281,14 +1187,14 @@ function TryDemo() {
                       onBlur={() => {
                         window.setTimeout(() => setIsLocationFocused(false), 120);
                       }}
-                      placeholder="Type a city, landmark, or GPS coordinates"
-                      className="rounded-xl bg-background pl-9"
+                      placeholder={copy.searchPlaceholder}
+                      className={cn("rounded-xl bg-background", isRtl ? "pr-9" : "pl-9")}
                     />
                     {shouldShowLocationDropdown ? (
                       <div className="absolute left-0 right-0 top-[calc(100%+0.5rem)] z-20 overflow-hidden rounded-2xl border border-border bg-card shadow-[var(--shadow-card)]">
                         {isSearchingLocations ? (
                           <div className="px-4 py-3 text-sm text-muted-foreground">
-                            Searching places...
+                            {copy.searchLoading}
                           </div>
                         ) : null}
 
@@ -1304,7 +1210,7 @@ function TryDemo() {
                         location.trim().length >= 2 &&
                         !parseCoordinates(location) ? (
                           <div className="px-4 py-3 text-sm text-muted-foreground">
-                            No matching places found yet.
+                            {copy.searchEmpty}
                           </div>
                         ) : null}
 
@@ -1318,7 +1224,7 @@ function TryDemo() {
                                 type="button"
                                 onMouseDown={(event) => event.preventDefault()}
                                 onClick={() => handleLocationSelect(item)}
-                                className="flex w-full items-start gap-3 px-4 py-3 text-left hover:bg-secondary"
+                                className="flex w-full items-start gap-3 px-4 py-3 text-start hover:bg-secondary"
                               >
                                 <span className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-full bg-primary-soft text-primary">
                                   <MapPin className="h-4 w-4" />
@@ -1349,25 +1255,25 @@ function TryDemo() {
                     disabled={isResolvingMyLocation || isDemoQuotaExceeded}
                   >
                     {isDemoQuotaExceeded
-                      ? "Demo Unavailable"
+                      ? copy.unavailable
                       : isResolvingMyLocation
-                        ? "Finding Location..."
-                        : "Use My Location"}
+                        ? copy.findingLocation
+                        : copy.useMyLocation}
                   </Button>
                 </div>
                 <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-                  Search by text, pick a suggestion, or paste raw GPS coordinates.
+                  {copy.searchHelp}
                 </p>
               </FormField>
 
-              <FormField label="Photo">
+              <FormField label={copy.photoLabel}>
                 <div className="space-y-3">
                   <label className="flex cursor-pointer items-center justify-between gap-3 rounded-2xl border border-border bg-background px-4 py-4 shadow-[var(--shadow-soft)] transition-colors hover:bg-secondary/50">
                     <span className="inline-flex items-center rounded-full bg-primary-soft px-4 py-2 text-sm font-semibold text-primary">
-                      Choose Photo
+                      {copy.choosePhoto}
                     </span>
-                    <span className="min-w-0 flex-1 text-right text-sm text-muted-foreground">
-                      {photoState.status === "idle" ? "No photo selected" : photoState.fileName}
+                    <span className="min-w-0 flex-1 text-end text-sm text-muted-foreground">
+                      {photoState.status === "idle" ? copy.noPhotoSelected : photoState.fileName}
                     </span>
                     <Input
                       ref={photoInputRef}
@@ -1378,7 +1284,7 @@ function TryDemo() {
                     />
                   </label>
                   <p className="text-xs leading-relaxed text-muted-foreground">
-                    {DEMO_GPS_REQUIRED_MESSAGE}
+                    {copy.gpsRequired}
                   </p>
 
                   {photoState.status !== "idle" ? (
@@ -1386,7 +1292,7 @@ function TryDemo() {
                       <div className="flex items-center justify-between border-b border-border/70 bg-secondary/40 px-4 py-3">
                         <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
                           <Camera className="h-3.5 w-3.5" />
-                          Demo photo
+                          {copy.demoPhoto}
                         </div>
                         <button
                           type="button"
@@ -1394,7 +1300,7 @@ function TryDemo() {
                           className="inline-flex items-center gap-1 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-semibold text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
                         >
                           <X className="h-3.5 w-3.5" />
-                          Remove
+                          {copy.removePhoto}
                         </button>
                       </div>
                       {photoState.previewUrl ? (
@@ -1416,9 +1322,7 @@ function TryDemo() {
                         </p>
 
                         {photoState.status === "reading" ? (
-                          <p className="text-sm text-muted-foreground">
-                            Reading GPS metadata from the photo...
-                          </p>
+                          <p className="text-sm text-muted-foreground">{copy.photoReading}</p>
                         ) : null}
 
                         {photoState.status === "resolved" ? (
@@ -1429,15 +1333,15 @@ function TryDemo() {
                             </div>
                             <p className="text-xs leading-relaxed text-muted-foreground">
                               {resolvedPhotoContext?.placeName
-                                ? "Location detected via the PlaceEcho public API using the image GPS metadata."
-                                : "GPS coordinates were found in the image, but a place name could not be resolved right now."}
+                                ? copy.photoResolved
+                                : copy.photoResolvedFallback}
                             </p>
                           </>
                         ) : null}
 
                         {photoState.status === "missing-gps" ? (
                           <p className="text-sm leading-relaxed text-[oklch(0.54_0.18_8)]">
-                            {DEMO_GPS_REQUIRED_MESSAGE}
+                            {copy.gpsRequired}
                           </p>
                         ) : null}
 
@@ -1452,7 +1356,7 @@ function TryDemo() {
                 </div>
               </FormField>
 
-              <FormField label="Length">
+              <FormField label={copy.lengthLabel}>
                 <ToggleGroup
                   type="single"
                   value={length}
@@ -1461,12 +1365,12 @@ function TryDemo() {
                   }}
                   variant="outline"
                   className="grid grid-cols-3 gap-2 rounded-2xl bg-background p-1"
-                  aria-label="Story length"
+                  aria-label={copy.lengthAria}
                 >
                   {[
-                    { v: "short", l: "Short" },
-                    { v: "medium", l: "Medium" },
-                    { v: "long", l: "Long" },
+                    { v: "short", l: copy.lengthOptions.short },
+                    { v: "medium", l: copy.lengthOptions.medium },
+                    { v: "long", l: copy.lengthOptions.long },
                   ].map((o) => (
                     <ToggleGroupItem
                       key={o.v}
@@ -1480,7 +1384,7 @@ function TryDemo() {
                 </ToggleGroup>
               </FormField>
 
-              <FormField label="Experience">
+              <FormField label={copy.experienceLabel}>
                 <ToggleGroup
                   type="single"
                   value={experience}
@@ -1489,30 +1393,30 @@ function TryDemo() {
                   }}
                   variant="outline"
                   className="grid grid-cols-2 gap-3"
-                  aria-label="Experience"
+                  aria-label={copy.experienceAria}
                 >
                   {[
                     {
                       v: "story",
-                      l: "Story",
+                      l: copy.experienceOptions.story,
                       icon: BookText,
                       tint: "bg-primary-soft text-primary",
                     },
                     {
                       v: "historical",
-                      l: "Historical",
+                      l: copy.experienceOptions.historical,
                       icon: Landmark,
                       tint: "bg-[oklch(0.97_0.04_85)] text-[oklch(0.48_0.16_72)]",
                     },
                     {
                       v: "guide",
-                      l: "Guide",
+                      l: copy.experienceOptions.guide,
                       icon: Compass,
                       tint: "bg-[oklch(0.96_0.04_230)] text-[oklch(0.45_0.13_235)]",
                     },
                     {
                       v: "urban-legend",
-                      l: "Urban Legend",
+                      l: copy.experienceOptions.urbanLegend,
                       icon: Ghost,
                       tint: "bg-[oklch(0.96_0.04_8)] text-[oklch(0.54_0.18_8)]",
                     },
@@ -1520,7 +1424,7 @@ function TryDemo() {
                     <ToggleGroupItem
                       key={o.v}
                       value={o.v}
-                      className="h-auto min-h-14 flex-col items-start justify-center rounded-2xl border border-border bg-card px-3 py-2.5 text-left text-foreground shadow-[var(--shadow-soft)] hover:bg-card hover:text-foreground data-[state=on]:border-primary data-[state=on]:bg-[oklch(0.98_0.03_72)] data-[state=on]:text-foreground data-[state=on]:shadow-[var(--shadow-card)]"
+                      className="h-auto min-h-14 flex-col items-start justify-center rounded-2xl border border-border bg-card px-3 py-2.5 text-start text-foreground shadow-[var(--shadow-soft)] hover:bg-card hover:text-foreground data-[state=on]:border-primary data-[state=on]:bg-[oklch(0.98_0.03_72)] data-[state=on]:text-foreground data-[state=on]:shadow-[var(--shadow-card)]"
                       aria-label={o.l}
                     >
                       <span className="flex w-full items-center gap-2.5">
@@ -1536,7 +1440,7 @@ function TryDemo() {
                 </ToggleGroup>
               </FormField>
 
-              <FormField label="Language">
+              <FormField label={copy.languageLabel}>
                 <ToggleGroup
                   type="single"
                   value={language}
@@ -1544,13 +1448,13 @@ function TryDemo() {
                     if (value) setLanguage(value);
                   }}
                   className="grid grid-cols-3 gap-2"
-                  aria-label="Language"
+                  aria-label={copy.languageAria}
                 >
                   {languageOptions.map((option) => (
                     <ToggleGroupItem
                       key={option.value}
                       value={option.value}
-                      className="h-12 justify-start rounded-xl border border-border bg-card px-3 text-left text-sm font-semibold text-foreground shadow-none hover:bg-card hover:text-foreground data-[state=on]:border-primary data-[state=on]:bg-[oklch(0.98_0.03_72)] data-[state=on]:text-foreground data-[state=on]:shadow-[var(--shadow-soft)]"
+                      className="h-12 justify-start rounded-xl border border-border bg-card px-3 text-start text-sm font-semibold text-foreground shadow-none hover:bg-card hover:text-foreground data-[state=on]:border-primary data-[state=on]:bg-[oklch(0.98_0.03_72)] data-[state=on]:text-foreground data-[state=on]:shadow-[var(--shadow-soft)]"
                       aria-label={option.label}
                     >
                       <option.flag className="h-4 w-6 shrink-0 rounded-sm border border-border/60 shadow-none" />
@@ -1576,7 +1480,7 @@ function TryDemo() {
                         href={APP_URL}
                         className="inline-flex items-center rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-[var(--shadow-soft)]"
                       >
-                        Try the PlaceEcho App
+                        {copy.quotaCta}
                       </a>
                     </div>
                   ) : null}
@@ -1590,10 +1494,10 @@ function TryDemo() {
               >
                 <Sparkles className="h-4 w-4" />
                 {isDemoQuotaExceeded
-                  ? "Demo Unavailable"
+                  ? copy.unavailable
                   : isSubmitting
-                    ? "Generating..."
-                    : "Generate Story"}
+                    ? copy.generating
+                    : copy.generate}
               </Button>
             </div>
           </form>
@@ -1605,22 +1509,22 @@ function TryDemo() {
               <div className="flex flex-wrap items-center gap-3">
                 <span className="inline-flex items-center gap-2 rounded-full bg-card px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-primary shadow-[var(--shadow-soft)]">
                   <Sparkles className="h-3.5 w-3.5" />
-                  Live demo result
+                  {copy.liveResult}
                 </span>
                 {demoResult.cached ? (
-                  <span className="text-xs font-semibold text-muted-foreground">
-                    Cached response
-                  </span>
+                  <span className="text-xs font-semibold text-muted-foreground">{copy.cached}</span>
                 ) : null}
                 {demoResult.degraded_mode ? (
-                  <span className="text-xs font-semibold text-muted-foreground">Degraded mode</span>
+                  <span className="text-xs font-semibold text-muted-foreground">
+                    {copy.degraded}
+                  </span>
                 ) : null}
               </div>
               <h3 className="mt-4 text-2xl font-bold sm:text-3xl">{demoResult.story.title}</h3>
               <p className="mt-2 text-sm text-muted-foreground">
                 {activeCoords
                   ? buildPlaceLabel(demoResult.context ?? resolvedPhotoContext, activeCoords)
-                  : (demoResult.context?.placeName ?? "Generated from the PlaceEcho public API")}
+                  : (demoResult.context?.placeName ?? copy.generatedFromApi)}
               </p>
               {demoResult.story.summary ? (
                 <p className="mt-3 max-w-3xl text-sm leading-relaxed text-muted-foreground">
@@ -1633,10 +1537,10 @@ function TryDemo() {
               <div className="space-y-4">
                 <div className="rounded-3xl bg-secondary/45 p-5">
                   <div className="text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground">
-                    Story Text
+                    {copy.storyText}
                   </div>
                   <p className="mt-3 whitespace-pre-line text-sm leading-7 text-foreground/90">
-                    {demoResult.story.text ?? "The API returned the story without body text."}
+                    {demoResult.story.text ?? copy.noStoryText}
                   </p>
                 </div>
               </div>
@@ -1644,7 +1548,7 @@ function TryDemo() {
               <div className="space-y-4">
                 <div className="rounded-3xl border border-border bg-card p-5 shadow-[var(--shadow-soft)]">
                   <div className="text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground">
-                    Listen
+                    {copy.listen}
                   </div>
                   <Button
                     type="button"
@@ -1655,22 +1559,22 @@ function TryDemo() {
                   >
                     {isDemoListening ? (
                       <>
-                        <AudioLines className="h-4 w-4" /> Stop Listening
+                        <AudioLines className="h-4 w-4" /> {copy.stopListening}
                       </>
                     ) : (
                       <>
-                        <Play className="h-4 w-4 fill-current" /> Listen to Story
+                        <Play className="h-4 w-4 fill-current" /> {copy.listenToStory}
                       </>
                     )}
                   </Button>
                   <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
                     {demoResult.story.audio_url
-                      ? "Play the generated audio version of this story."
+                      ? copy.audioAvailable
                       : demoListenMode === "speech" ||
                           typeof window === "undefined" ||
                           "speechSynthesis" in window
-                        ? "If audio wasn't generated, the demo uses your browser voice to read the story."
-                        : "Audio generation wasn't included in this result, and browser voice playback isn't available here."}
+                        ? copy.browserVoice
+                        : copy.noAudio}
                   </p>
                   {demoResult.story.audio_url ? (
                     <audio
@@ -1691,31 +1595,33 @@ function TryDemo() {
                         setDemoListenMode(null);
                       }}
                     >
-                      Your browser does not support audio playback.
+                      {copy.audioUnsupported}
                     </audio>
                   ) : null}
                 </div>
 
                 <div className="rounded-3xl border border-border bg-card p-5 shadow-[var(--shadow-soft)]">
                   <div className="text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground">
-                    Story Details
+                    {copy.storyDetails}
                   </div>
                   <div className="mt-4 space-y-3 text-sm">
                     <div>
-                      <span className="font-semibold text-foreground">Mode:</span>{" "}
+                      <span className="font-semibold text-foreground">{copy.mode}:</span>{" "}
                       <span className="text-muted-foreground">
                         {demoResult.story.experience_mode ?? getExperienceMode(experience)}
                       </span>
                     </div>
                     <div>
-                      <span className="font-semibold text-foreground">Language:</span>{" "}
+                      <span className="font-semibold text-foreground">{copy.language}:</span>{" "}
                       <span className="text-muted-foreground">
                         {demoResult.story.language ?? getLanguageCode(language)}
                       </span>
                     </div>
                     {demoResult.context?.confidence ? (
                       <div>
-                        <span className="font-semibold text-foreground">Location confidence:</span>{" "}
+                        <span className="font-semibold text-foreground">
+                          {copy.locationConfidence}:
+                        </span>{" "}
                         <span className="text-muted-foreground">
                           {Math.round(demoResult.context.confidence * 100)}%
                         </span>
@@ -1723,7 +1629,7 @@ function TryDemo() {
                     ) : null}
                     {demoResult.story.share_url ? (
                       <div>
-                        <span className="font-semibold text-foreground">Share URL:</span>{" "}
+                        <span className="font-semibold text-foreground">{copy.shareUrl}:</span>{" "}
                         <a
                           href={resolvePublicAssetUrl(demoResult.story.share_url)}
                           target="_blank"
@@ -1950,6 +1856,8 @@ function EchoCard({
   onRead: (echo: Echo) => void;
   expanded?: boolean;
 }) {
+  const { locale } = useLocale();
+  const copy = HOME_COPY[locale].featured;
   return (
     <article className="group overflow-hidden rounded-3xl border border-border bg-card shadow-[var(--shadow-soft)] transition-shadow hover:shadow-[var(--shadow-card)]">
       <div className={cn("relative overflow-hidden", expanded ? "aspect-[16/10]" : "aspect-[5/4]")}>
@@ -1964,7 +1872,7 @@ function EchoCard({
         <span
           className={`absolute left-3 bottom-3 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase text-primary-foreground ${echo.tagColor}`}
         >
-          {echo.mode}
+          {copy.modeMeta[echo.mode].label}
         </span>
       </div>
       <div className="p-4">
@@ -1998,7 +1906,7 @@ function EchoCard({
         </div>
         <div className={cn("mt-3 rounded-2xl p-3", ECHO_MODE_META[echo.mode].actionClass)}>
           <div className="text-[11px] font-bold uppercase tracking-[0.2em] opacity-80">
-            Why this feels different
+            {copy.whyDifferent}
           </div>
           <p className="mt-1 text-xs leading-relaxed opacity-90">{echo.focus}</p>
         </div>
@@ -2008,14 +1916,14 @@ function EchoCard({
             onClick={() => onListen(echo)}
             className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-primary-soft py-2 text-xs font-semibold text-primary hover:bg-primary/15"
           >
-            <Play className="h-3.5 w-3.5 fill-primary" /> Listen
+            <Play className="h-3.5 w-3.5 fill-primary" /> {copy.listen}
           </button>
           <button
             type="button"
             onClick={() => onRead(echo)}
             className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-border py-2 text-xs font-semibold hover:bg-secondary"
           >
-            <BookOpen className="h-3.5 w-3.5" /> Read Story
+            <BookOpen className="h-3.5 w-3.5" /> {copy.readStory}
           </button>
         </div>
       </div>
@@ -2024,12 +1932,19 @@ function EchoCard({
 }
 
 function FeaturedEchoes() {
+  const { locale } = useLocale();
+  const copy = HOME_COPY[locale].featured;
   const [activeEcho, setActiveEcho] = useState<Echo | null>(null);
   const [previewMode, setPreviewMode] = useState<"listen" | "read" | null>(null);
   const [catalogOpen, setCatalogOpen] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
-  const featuredEchoes = ECHOES.slice(0, 4);
+  const localizedEchoes: Echo[] = copy.echoes.map((echo, index) => ({
+    ...echo,
+    img: ECHOES[index].img,
+    tagColor: ECHOES[index].tagColor,
+  }));
+  const featuredEchoes = localizedEchoes.slice(0, 4);
 
   function stopSpeaking() {
     if (typeof window !== "undefined" && "speechSynthesis" in window) {
@@ -2099,16 +2014,14 @@ function FeaturedEchoes() {
   );
 
   const activeMeta = activeEcho ? ECHO_MODE_META[activeEcho.mode] : null;
+  const activeCopyMeta = activeEcho ? copy.modeMeta[activeEcho.mode] : null;
 
   return (
     <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 md:py-24">
       <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-bold sm:text-4xl">Featured Echoes</h2>
-          <p className="mt-2 max-w-2xl text-muted-foreground">
-            Sample stories generated by PlaceEcho from amazing places around the world. Each card
-            below demonstrates a different experience mode, so the contrast is easy to feel.
-          </p>
+          <h2 className="text-3xl font-bold sm:text-4xl">{copy.title}</h2>
+          <p className="mt-2 max-w-2xl text-muted-foreground">{copy.intro}</p>
         </div>
         <Button
           type="button"
@@ -2116,7 +2029,7 @@ function FeaturedEchoes() {
           className="rounded-full gap-1 bg-card"
           onClick={() => setCatalogOpen(true)}
         >
-          See all Echoes <ChevronRight className="h-4 w-4" />
+          {copy.allCta} <ChevronRight className="h-4 w-4" />
         </Button>
       </div>
       <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
@@ -2133,17 +2046,16 @@ function FeaturedEchoes() {
         <DialogContent className="max-h-[90vh] overflow-hidden border-0 p-0 sm:max-w-6xl">
           <div className="overflow-hidden rounded-[1.75rem] bg-card">
             <div className="border-b border-border bg-secondary/40 p-6 sm:p-8">
-              <DialogHeader className="space-y-3 text-left">
-                <DialogTitle className="text-2xl sm:text-3xl">All Echoes</DialogTitle>
+              <DialogHeader className="space-y-3 text-start">
+                <DialogTitle className="text-2xl sm:text-3xl">{copy.allDialogTitle}</DialogTitle>
                 <DialogDescription className="max-w-3xl text-sm leading-relaxed text-muted-foreground">
-                  Explore a broader PlaceEcho catalog with different tones, structures, and
-                  listening styles. Open any Echo to hear a preview or read the full sample story.
+                  {copy.allDialogDescription}
                 </DialogDescription>
               </DialogHeader>
             </div>
             <div className="max-h-[calc(90vh-9rem)] overflow-y-auto p-6 sm:p-8">
               <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-                {ECHOES.map((echo) => (
+                {localizedEchoes.map((echo) => (
                   <EchoCard
                     key={echo.title}
                     echo={echo}
@@ -2159,7 +2071,7 @@ function FeaturedEchoes() {
       </Dialog>
       <Dialog open={Boolean(activeEcho && previewMode)} onOpenChange={handleDialogChange}>
         <DialogContent className="max-h-[90vh] overflow-hidden border-0 p-0 sm:max-w-4xl">
-          {activeEcho && activeMeta ? (
+          {activeEcho && activeMeta && activeCopyMeta ? (
             <div className="overflow-hidden rounded-[1.75rem] bg-card">
               <div
                 className={cn(
@@ -2167,7 +2079,7 @@ function FeaturedEchoes() {
                   activeMeta.panelClass,
                 )}
               >
-                <DialogHeader className="space-y-3 text-left">
+                <DialogHeader className="space-y-3 text-start">
                   <div className="flex flex-wrap items-center gap-3">
                     <span
                       className={cn(
@@ -2176,7 +2088,7 @@ function FeaturedEchoes() {
                       )}
                     >
                       <activeMeta.icon className="h-3.5 w-3.5" />
-                      {activeEcho.mode}
+                      {activeCopyMeta.label}
                     </span>
                     <span className="text-sm font-medium text-muted-foreground">
                       {activeEcho.location}
@@ -2184,7 +2096,7 @@ function FeaturedEchoes() {
                   </div>
                   <DialogTitle className="text-2xl sm:text-3xl">{activeEcho.title}</DialogTitle>
                   <DialogDescription className="max-w-2xl text-sm leading-relaxed text-muted-foreground">
-                    {activeMeta.description}
+                    {activeCopyMeta.description}
                   </DialogDescription>
                 </DialogHeader>
               </div>
@@ -2196,10 +2108,10 @@ function FeaturedEchoes() {
                       <div className="flex items-center justify-between gap-3">
                         <div>
                           <div className="text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground">
-                            Audio Preview
+                            {copy.audioPreview}
                           </div>
                           <p className="mt-1 text-sm text-muted-foreground">
-                            A short spoken sample of this experience style.
+                            {copy.audioPreviewIntro}
                           </p>
                         </div>
                         <Button
@@ -2209,11 +2121,11 @@ function FeaturedEchoes() {
                         >
                           {isSpeaking ? (
                             <>
-                              <AudioLines className="h-4 w-4" /> Stop Preview
+                              <AudioLines className="h-4 w-4" /> {copy.stopPreview}
                             </>
                           ) : (
                             <>
-                              <Play className="h-4 w-4 fill-current" /> Play Preview
+                              <Play className="h-4 w-4 fill-current" /> {copy.playPreview}
                             </>
                           )}
                         </Button>
@@ -2223,15 +2135,15 @@ function FeaturedEchoes() {
                       </div>
                       <p className="mt-3 text-xs text-muted-foreground">
                         {typeof window !== "undefined" && "speechSynthesis" in window
-                          ? "This preview uses your browser voice to simulate PlaceEcho narration."
-                          : "Audio preview is shown as text here if browser voice playback is unavailable."}
+                          ? copy.browserPreview
+                          : copy.noBrowserPreview}
                       </p>
                     </div>
                   </div>
                   <div className="space-y-4">
                     <div className="rounded-3xl border border-border bg-card p-5 shadow-[var(--shadow-soft)]">
                       <div className="text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground">
-                        What stands out
+                        {copy.highlights}
                       </div>
                       <div className="mt-4 space-y-3">
                         {activeEcho.highlights.map((item) => (
@@ -2251,10 +2163,10 @@ function FeaturedEchoes() {
                     </div>
                     <div className="rounded-3xl border border-border bg-card p-5 shadow-[var(--shadow-soft)]">
                       <div className="text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground">
-                        Mode Signature
+                        {copy.modeSignature}
                       </div>
                       <div className="mt-3 flex flex-wrap gap-2">
-                        {activeMeta.chips.map((chip) => (
+                        {activeCopyMeta.chips.map((chip) => (
                           <span
                             key={chip}
                             className={cn(
@@ -2281,7 +2193,7 @@ function FeaturedEchoes() {
                   <div className="space-y-4">
                     <div className="rounded-3xl border border-border bg-card p-5 shadow-[var(--shadow-soft)]">
                       <div className="text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground">
-                        Experience DNA
+                        {copy.experienceDna}
                       </div>
                       <p className="mt-3 text-sm leading-6 text-muted-foreground">
                         {activeEcho.focus}
@@ -2289,7 +2201,7 @@ function FeaturedEchoes() {
                     </div>
                     <div className="rounded-3xl border border-border bg-card p-5 shadow-[var(--shadow-soft)]">
                       <div className="text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground">
-                        Key Highlights
+                        {copy.keyHighlights}
                       </div>
                       <div className="mt-4 space-y-3">
                         {activeEcho.highlights.map((item) => (
@@ -2312,7 +2224,7 @@ function FeaturedEchoes() {
                       onClick={() => setPreviewMode("listen")}
                       className="w-full rounded-2xl gap-2"
                     >
-                      <Play className="h-4 w-4 fill-current" /> Switch to Listen Preview
+                      <Play className="h-4 w-4 fill-current" /> {copy.switchToListen}
                     </Button>
                   </div>
                 </div>
@@ -2327,37 +2239,39 @@ function FeaturedEchoes() {
 
 /* ---------- Experience Modes ---------- */
 function ExperienceModes() {
+  const { locale } = useLocale();
+  const copy = HOME_COPY[locale].experienceModes;
   const modes = [
     {
       icon: BookText,
-      name: "Story",
-      desc: "Immersive storytelling inspired by the atmosphere of the place.",
+      name: copy.items[0][0],
+      desc: copy.items[0][1],
       tint: "bg-primary-soft text-primary",
     },
     {
       icon: Landmark,
-      name: "Historical",
-      desc: "Explore real events, people and moments that shaped the location.",
+      name: copy.items[1][0],
+      desc: copy.items[1][1],
       tint: "bg-accent-soft text-accent-foreground",
     },
     {
       icon: Compass,
-      name: "Guide",
-      desc: "Practical and inspiring guides to understand what makes the place special.",
+      name: copy.items[2][0],
+      desc: copy.items[2][1],
       tint: "bg-[oklch(0.94_0.04_240)] text-[oklch(0.45_0.15_240)]",
     },
     {
       icon: Ghost,
-      name: "Urban Legend",
-      desc: "Myths, mysteries and local legends passed down through time.",
+      name: copy.items[3][0],
+      desc: copy.items[3][1],
       tint: "bg-[oklch(0.94_0.04_300)] text-[oklch(0.45_0.18_300)]",
     },
   ];
   return (
     <section className="bg-secondary/40 py-16 md:py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
-        <h2 className="text-3xl font-bold sm:text-4xl">Experience Modes</h2>
-        <p className="mt-2 text-muted-foreground">Explore stories in different ways.</p>
+        <h2 className="text-3xl font-bold sm:text-4xl">{copy.title}</h2>
+        <p className="mt-2 text-muted-foreground">{copy.intro}</p>
         <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {modes.map((m) => (
             <div
@@ -2472,18 +2386,20 @@ function RussiaFlag({ className }: { className?: string }) {
 }
 
 function MultiLanguage() {
+  const { locale } = useLocale();
+  const copy = HOME_COPY[locale].languages;
   const langs = [
-    { name: "English", flag: <UKFlag /> },
-    { name: "Hebrew", flag: <IsraelFlag /> },
-    { name: "French", flag: <FranceFlag /> },
-    { name: "German", flag: <GermanyFlag /> },
-    { name: "Spanish", flag: <SpainFlag /> },
-    { name: "Russian", flag: <RussiaFlag /> },
+    { name: copy.items[0], flag: <UKFlag /> },
+    { name: copy.items[1], flag: <IsraelFlag /> },
+    { name: copy.items[2], flag: <FranceFlag /> },
+    { name: copy.items[3], flag: <GermanyFlag /> },
+    { name: copy.items[4], flag: <SpainFlag /> },
+    { name: copy.items[5], flag: <RussiaFlag /> },
   ];
   return (
     <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 md:py-24">
-      <h2 className="text-3xl font-bold sm:text-4xl">Multiple Languages</h2>
-      <p className="mt-2 text-muted-foreground">Natural audio in six languages.</p>
+      <h2 className="text-3xl font-bold sm:text-4xl">{copy.title}</h2>
+      <p className="mt-2 text-muted-foreground">{copy.intro}</p>
       <div className="mt-10 grid grid-cols-3 gap-5 sm:grid-cols-6">
         {langs.map((l) => (
           <div
@@ -2501,32 +2417,38 @@ function MultiLanguage() {
 
 /* ---------- Screenshots ---------- */
 function Screenshots() {
+  const { locale } = useLocale();
+  const copy = HOME_COPY[locale].screenshots;
   const steps = [
     {
       icon: MapIcon,
-      title: "1. Choose a Place",
-      desc: "Find any place in the world or use your current location.",
+      step: copy.steps[0][0],
+      title: copy.steps[0][1],
+      desc: copy.steps[0][2],
       tint: "from-[oklch(0.85_0.12_220)] to-[oklch(0.7_0.15_220)]",
       image: locationPickerScreen,
     },
     {
       icon: Compass,
-      title: "2. Pick an Experience",
-      desc: "Choose the style and length that fits your curiosity.",
+      step: copy.steps[1][0],
+      title: copy.steps[1][1],
+      desc: copy.steps[1][2],
       tint: "from-primary-soft to-primary/40",
       image: chooseExperienceScreen,
     },
     {
       icon: Headphones,
-      title: "3. Listen & Enjoy",
-      desc: "Listen to your personalized story with natural audio.",
+      step: copy.steps[2][0],
+      title: copy.steps[2][1],
+      desc: copy.steps[2][2],
       tint: "from-[oklch(0.4_0.06_50)] to-[oklch(0.25_0.04_50)]",
       image: storyAudioScreen,
     },
     {
       icon: Library,
-      title: "4. Your Library",
-      desc: "All your stories saved in one place to revisit anytime.",
+      step: copy.steps[3][0],
+      title: copy.steps[3][1],
+      desc: copy.steps[3][2],
       tint: "from-accent-soft to-accent/40",
       image: myStoriesScreen,
     },
@@ -2534,8 +2456,8 @@ function Screenshots() {
   return (
     <section className="bg-primary-soft/60 py-16 md:py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
-        <h2 className="text-3xl font-bold sm:text-4xl">PlaceEcho in Action</h2>
-        <p className="mt-2 text-muted-foreground">Designed for curious explorers everywhere.</p>
+        <h2 className="text-3xl font-bold sm:text-4xl">{copy.title}</h2>
+        <p className="mt-2 text-muted-foreground">{copy.intro}</p>
         <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {steps.map((s) => (
             <div key={s.title}>
@@ -2558,12 +2480,40 @@ function Screenshots() {
                   </div>
                 </div>
               )}
-              <h3 className="mt-4 text-center text-base font-bold">{s.title}</h3>
+              <p className="mt-4 text-center text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">
+                {s.step}
+              </p>
+              <h3 className="mt-2 text-center text-base font-bold">{s.title}</h3>
               <p className="mx-auto mt-1 max-w-[220px] text-center text-sm text-muted-foreground">
                 {s.desc}
               </p>
             </div>
           ))}
+        </div>
+        <div className="mt-10 rounded-[2rem] border border-border bg-card/95 p-6 shadow-[var(--shadow-card)] sm:p-8">
+          <div className="grid gap-6 lg:grid-cols-[220px_1fr] lg:items-center xl:grid-cols-[240px_1fr]">
+            <div className="mx-auto w-full max-w-[220px]">
+              <div className="relative mx-auto aspect-[9/16] w-full overflow-hidden rounded-[1.75rem] border-[6px] border-foreground/90 bg-background shadow-[0_20px_40px_-15px_rgba(0,0,0,0.3)]">
+                <img
+                  src={photoGpsScreen}
+                  alt={copy.photoAlt}
+                  loading="lazy"
+                  className="block h-full w-full object-cover"
+                />
+              </div>
+            </div>
+            <div className="max-w-2xl">
+              <span className="inline-flex items-center gap-2 rounded-full bg-primary-soft px-3 py-1 text-xs font-semibold text-primary">
+                <Camera className="h-3.5 w-3.5" />
+                {copy.photoBadge}
+              </span>
+              <h3 className="mt-4 text-2xl font-bold sm:text-3xl">{copy.photoTitle}</h3>
+              <p className="mt-3 text-sm leading-6 text-muted-foreground sm:text-base">
+                {copy.photoBody}
+              </p>
+              <p className="mt-3 text-sm leading-6 text-muted-foreground">{copy.photoNote}</p>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -2572,65 +2522,116 @@ function Screenshots() {
 
 /* ---------- Community ---------- */
 function Community() {
+  const { locale } = useLocale();
+  const copy = locale === "he" ? HOME_COMMUNITY_HE : HOME_COPY[locale].community;
   const items = [
     {
-      icon: Lightbulb,
-      title: "Help shape features",
-      desc: "We value your feedback",
-      tint: "bg-[oklch(0.96_0.04_95)] text-[oklch(0.54_0.14_88)]",
+      icon: MapPin,
+      title: copy.items[0][0],
+      desc: copy.items[0][1],
+      tint: "bg-[oklch(0.95_0.04_220)] text-[oklch(0.48_0.14_230)]",
     },
     {
       icon: Heart,
-      title: "Share your ideas",
-      desc: "Suggest new places",
+      title: copy.items[1][0],
+      desc: copy.items[1][1],
       tint: "bg-[oklch(0.96_0.04_12)] text-[oklch(0.56_0.18_18)]",
     },
     {
       icon: Sparkles,
-      title: "Early access",
-      desc: "Be the first to explore",
+      title: copy.items[2][0],
+      desc: copy.items[2][1],
       tint: "bg-primary-soft text-primary",
     },
     {
       icon: Users,
-      title: "Future community",
-      desc: "Stories, creators & more",
+      title: copy.items[3][0],
+      desc: copy.items[3][1],
       tint: "bg-[oklch(0.95_0.04_230)] text-[oklch(0.46_0.12_235)]",
     },
   ];
   return (
-    <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 md:py-24">
-      <div className="grid gap-10 lg:grid-cols-[1fr_360px] lg:items-start">
-        <div>
-          <h2 className="text-3xl font-bold sm:text-4xl">
-            Community{" "}
-            <span className="text-muted-foreground text-xl font-medium">(Coming Soon)</span>
-          </h2>
-          <p className="mt-3 max-w-xl text-muted-foreground">
-            PlaceEcho is in active development. We're building a community of curious explorers and
-            storytellers.
-          </p>
-          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <section className="bg-secondary/40 py-16 md:py-24">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6">
+        <div className="max-w-3xl">
+          <span className="inline-flex items-center gap-2 rounded-full bg-accent-soft px-3 py-1 text-xs font-semibold text-accent-foreground">
+            <Users className="h-3.5 w-3.5" />
+            {copy.title}
+          </span>
+          <h2 className="mt-4 text-3xl font-bold sm:text-4xl">{copy.subtitle}</h2>
+          <p className="mt-4 max-w-2xl text-muted-foreground">{copy.intro}</p>
+        </div>
+        <div className="mt-10 grid gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)] lg:items-start">
+          <div className="grid gap-4 sm:grid-cols-2">
             {items.map((i) => (
               <div
                 key={i.title}
-                className="rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-soft)]"
+                className="group rounded-3xl border border-border bg-card p-5 shadow-[var(--shadow-soft)] transition-shadow hover:shadow-[var(--shadow-card)]"
               >
-                <span className={cn("grid h-11 w-11 place-items-center rounded-2xl", i.tint)}>
+                <span
+                  className={cn(
+                    "grid h-11 w-11 place-items-center rounded-2xl shadow-[var(--shadow-soft)]",
+                    i.tint,
+                  )}
+                >
                   <i.icon className="h-5 w-5" />
                 </span>
-                <h3 className="mt-3 text-sm font-bold">{i.title}</h3>
-                <p className="mt-1 text-xs text-muted-foreground">{i.desc}</p>
+                <h3 className="mt-4 text-base font-bold">{i.title}</h3>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">{i.desc}</p>
               </div>
             ))}
           </div>
+          <div className="rounded-[2rem] border border-border bg-card p-6 shadow-[var(--shadow-card)] sm:p-8">
+            <span className="inline-flex items-center gap-2 rounded-full bg-primary-soft px-3 py-1 text-xs font-semibold text-primary">
+              <Sparkles className="h-3.5 w-3.5" />
+              {copy.panelBadge}
+            </span>
+            <h3 className="mt-4 text-2xl font-bold">{copy.cardTitle}</h3>
+            <p className="mt-3 text-sm leading-6 text-muted-foreground sm:text-base">
+              {copy.cardBody}
+            </p>
+            <ul className="mt-6 space-y-3">
+              {copy.benefits.map((benefit) => (
+                <li key={benefit} className="flex items-start gap-3 text-sm">
+                  <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-primary-soft text-primary">
+                    <Check className="h-3.5 w-3.5 stroke-[3]" />
+                  </span>
+                  <span className="font-medium text-foreground/90">{benefit}</span>
+                </li>
+              ))}
+            </ul>
+            <Button asChild className="mt-6 w-full rounded-full">
+              <a href={APP_URL}>{copy.cardCta}</a>
+            </Button>
+            <p className="mt-3 text-center text-xs text-muted-foreground">{copy.cardNote}</p>
+            <div className="mt-6 rounded-2xl border border-border bg-secondary/60 p-4">
+              <p className="text-sm font-medium text-foreground/90">{copy.trustMessage}</p>
+            </div>
+          </div>
         </div>
-        <div className="rounded-3xl border border-border bg-card p-6 shadow-[var(--shadow-card)]">
-          <h3 className="text-lg font-bold">Be an Early Explorer</h3>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Join early and help us build the future of AI-powered place experiences.
-          </p>
-          <Button className="mt-5 w-full rounded-full">Join Early Access</Button>
+        <div className="mt-6 rounded-[2rem] border border-border bg-card p-6 shadow-[var(--shadow-soft)] sm:p-8">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+            <div className="max-w-2xl">
+              <h3 className="text-xl font-bold sm:text-2xl">{copy.futureTitle}</h3>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground sm:text-base">
+                {copy.futureBody}
+              </p>
+            </div>
+            <span className="inline-flex items-center gap-2 self-start rounded-full bg-accent-soft px-3 py-1 text-xs font-semibold text-accent-foreground">
+              <Star className="h-3.5 w-3.5" />
+              {copy.panelBadge}
+            </span>
+          </div>
+          <div className="mt-6 flex flex-wrap gap-3">
+            {copy.futureItems.map((item) => (
+              <span
+                key={item}
+                className="rounded-full border border-border bg-background px-4 py-2 text-sm font-medium text-foreground/85 shadow-[var(--shadow-soft)]"
+              >
+                {item}
+              </span>
+            ))}
+          </div>
         </div>
       </div>
     </section>
@@ -2639,21 +2640,23 @@ function Community() {
 
 /* ---------- About ---------- */
 function AboutPlaceEcho() {
+  const { locale } = useLocale();
+  const copy = locale === "he" ? HOME_ABOUT_HE : HOME_COPY[locale].about;
   const pillars = [
-    { icon: Sparkles, label: "AI-Powered Stories", tint: "bg-primary-soft text-primary" },
+    { icon: Sparkles, label: copy.pillars[0], tint: "bg-primary-soft text-primary" },
     {
       icon: AudioLines,
-      label: "Natural Audio",
+      label: copy.pillars[1],
       tint: "bg-[oklch(0.96_0.04_160)] text-[oklch(0.45_0.13_165)]",
     },
     {
       icon: ShieldCheck,
-      label: "Privacy Focused",
+      label: copy.pillars[2],
       tint: "bg-[oklch(0.95_0.04_220)] text-[oklch(0.48_0.14_230)]",
     },
     {
       icon: Compass,
-      label: "Made for Explorers",
+      label: copy.pillars[3],
       tint: "bg-[oklch(0.96_0.04_95)] text-[oklch(0.54_0.14_88)]",
     },
   ];
@@ -2663,7 +2666,7 @@ function AboutPlaceEcho() {
         <div className="overflow-hidden rounded-3xl shadow-[var(--shadow-card)]">
           <img
             src={placeechoPostcard}
-            alt="A traveler discovering stories with PlaceEcho"
+            alt={copy.imageAlt}
             loading="lazy"
             width={1536}
             height={1024}
@@ -2671,13 +2674,12 @@ function AboutPlaceEcho() {
           />
         </div>
         <div>
-          <h2 className="text-3xl font-bold sm:text-4xl">About PlaceEcho</h2>
-          <p className="mt-4 max-w-2xl text-muted-foreground">
-            PlaceEcho was created to make every place feel more meaningful through AI-powered
-            stories, natural audio, cultural context, and personal exploration. Our technology turns
-            any location into a meaningful experience through immersive stories, historical
-            insights, guides, and legends.
-          </p>
+          <h2 className="text-3xl font-bold sm:text-4xl">{copy.title}</h2>
+          <div className="mt-4 max-w-2xl space-y-4 text-muted-foreground">
+            {copy.body.map((paragraph) => (
+              <p key={paragraph}>{paragraph}</p>
+            ))}
+          </div>
           <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
             {pillars.map((p) => (
               <div
@@ -2699,6 +2701,8 @@ function AboutPlaceEcho() {
 
 /* ---------- Final CTA ---------- */
 function FinalCTA() {
+  const { locale } = useLocale();
+  const copy = HOME_COPY[locale].finalCta;
   return (
     <section className="relative overflow-hidden bg-primary-soft py-20 text-center">
       <div
@@ -2715,18 +2719,16 @@ function FinalCTA() {
         className="pointer-events-none absolute inset-0 bg-gradient-to-b from-primary-soft via-primary-soft/80 to-primary-soft"
       />
       <div className="relative mx-auto max-w-2xl px-4">
-        <h2 className="text-3xl font-bold text-primary sm:text-4xl md:text-5xl">
-          Ready to Hear the Story Around You?
-        </h2>
-        <p className="mt-4 text-muted-foreground">Generate your first Echo in seconds.</p>
+        <h2 className="text-3xl font-bold text-primary sm:text-4xl md:text-5xl">{copy.title}</h2>
+        <p className="mt-4 text-muted-foreground">{copy.body}</p>
         <Button
           asChild
           size="lg"
           className="mt-7 rounded-full px-8 py-6 text-base shadow-[var(--shadow-card)]"
         >
-          <a href={APP_URL}>Try PlaceEcho Free</a>
+          <a href={APP_URL}>{copy.cta}</a>
         </Button>
-        <p className="mt-3 text-xs text-muted-foreground">No credit card required</p>
+        <p className="mt-3 text-xs text-muted-foreground">{copy.note}</p>
       </div>
     </section>
   );
