@@ -9,7 +9,6 @@ export default defineConfig({
   },
   plugins: [
     tanstackStart({
-      // Redirect TanStack Start's bundled server entry to src/server.ts.
       server: { entry: "server" },
     }),
     react(),
