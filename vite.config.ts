@@ -7,5 +7,11 @@ export default defineConfig({
   resolve: {
     tsconfigPaths: true,
   },
-  plugins: [tanstackStart(), react(), tailwindcss()],
+  plugins: [
+    tanstackStart({
+      server: { entry: "server" },
+    }),
+    react(),
+    tailwindcss(),
+  ],
 });
