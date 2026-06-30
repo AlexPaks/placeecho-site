@@ -100,6 +100,7 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
   return <LocaleContext.Provider value={value}>{children}</LocaleContext.Provider>;
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useLocale() {
   const context = useContext(LocaleContext);
   if (!context) {
@@ -109,6 +110,7 @@ export function useLocale() {
   return context;
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useLocalizedDocument({
   title,
   description,
