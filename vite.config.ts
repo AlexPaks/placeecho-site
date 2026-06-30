@@ -7,12 +7,5 @@ export default defineConfig({
   resolve: {
     tsconfigPaths: true,
   },
-  plugins: [
-    tanstackStart({
-      // Redirect TanStack Start's bundled server entry to src/server.ts.
-      server: { entry: "server" },
-    }),
-    react(),
-    tailwindcss(),
-  ],
+  plugins: [tanstackStart(), react(), tailwindcss()],
 });
