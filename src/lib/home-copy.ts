@@ -1,0 +1,704 @@
+export type EchoMode = "Story" | "Historical" | "Guide" | "Urban Legend";
+
+export const HOME_COPY = {
+  en: {
+    metaTitle: "PlaceEcho - Every Place Has More Than One Story",
+    metaDescription:
+      "PlaceEcho turns any location into a personalized AI-powered audio experience: immersive stories, historical journeys, local guides, and urban legends.",
+    hero: {
+      badge: "AI-powered place experiences",
+      titleLine1: "Every Place Has",
+      titleLine2: "More Than",
+      titleAccent: "One Story",
+      body: "PlaceEcho transforms any location into a personalized AI-powered experience: immersive stories, historical journeys, local guides, and urban legends with natural audio in multiple languages.",
+      ctaPrimary: "Try PlaceEcho Free",
+      ctaSecondary: "Watch Demo",
+      features: [
+        "Current Location",
+        "Anywhere in the World",
+        "Photo Discovery",
+        "AI Narration",
+        "Multiple Languages",
+      ],
+    },
+    demo: {
+      title: "Try the Demo",
+      intro: "See how PlaceEcho turns any place into an unforgettable story experience.",
+      checks: ["Pick a place or upload a photo", "Choose an experience", "Generate and listen"],
+      cta: "Try the Demo",
+      formTitle: "Try the Demo",
+      searchLabel: "Search Place",
+      searchPlaceholder: "Type a city, landmark, or GPS coordinates",
+      searchLoading: "Searching places...",
+      searchEmpty: "No matching places found yet.",
+      useMyLocation: "Use My Location",
+      findingLocation: "Finding Location...",
+      unavailable: "Demo Unavailable",
+      searchHelp: "Search by text, pick a suggestion, or paste raw GPS coordinates.",
+      photoLabel: "Photo",
+      choosePhoto: "Choose Photo",
+      noPhotoSelected: "No photo selected",
+      gpsRequired:
+        "For this demo, please choose a photo with GPS metadata so we can show where it was taken. In the full PlaceEcho app, it also works without GPS.",
+      demoPhoto: "Demo photo",
+      removePhoto: "Remove",
+      photoReading: "Reading GPS metadata from the photo...",
+      photoResolved: "Location detected via the PlaceEcho public API using the image GPS metadata.",
+      photoResolvedFallback:
+        "GPS coordinates were found in the image, but a place name could not be resolved right now.",
+      photoError: "We could not read this image. Please try a JPG photo with GPS metadata.",
+      lengthLabel: "Length",
+      lengthAria: "Story length",
+      lengthOptions: { short: "Short", medium: "Medium", long: "Long" },
+      experienceLabel: "Experience",
+      experienceAria: "Experience",
+      experienceOptions: {
+        story: "Story",
+        historical: "Historical",
+        guide: "Guide",
+        urbanLegend: "Urban Legend",
+      },
+      languageLabel: "Language",
+      languageAria: "Language",
+      languageOptions: {
+        english: "English",
+        german: "German",
+        hebrew: "Hebrew",
+        french: "French",
+        russian: "Russian",
+        spanish: "Spanish",
+      },
+      quotaCta: "Try the PlaceEcho App",
+      generate: "Generate Story",
+      generating: "Generating...",
+      liveResult: "Live demo result",
+      cached: "Cached response",
+      degraded: "Degraded mode",
+      generatedFromApi: "Generated from the PlaceEcho public API",
+      storyText: "Story Text",
+      noStoryText: "The API returned the story without body text.",
+      listen: "Listen",
+      stopListening: "Stop Listening",
+      listenToStory: "Listen to Story",
+      audioAvailable: "Play the generated audio version of this story.",
+      browserVoice:
+        "If audio wasn't generated, the demo uses your browser voice to read the story.",
+      noAudio:
+        "Audio generation wasn't included in this result, and browser voice playback isn't available here.",
+      audioUnsupported: "Your browser does not support audio playback.",
+      storyDetails: "Story Details",
+      mode: "Mode",
+      language: "Language",
+      locationConfidence: "Location confidence",
+      shareUrl: "Share URL",
+      errors: {
+        quota:
+          "The public demo is unavailable right now. Try the full PlaceEcho app to keep exploring places and generating stories.",
+        generic: "Something went wrong while using the demo.",
+        playback: "We couldn't start audio playback right now. Please try again.",
+        noPlayback: "Audio playback isn't available for this demo result right now.",
+        locationUnavailable:
+          "Location access isn't available in this browser. Search for a place or upload a photo instead.",
+        locationFailed:
+          "We couldn't access your location. Please allow GPS access, search for a place, or upload a photo.",
+        locationRequired:
+          "To use the demo, choose a location or upload a photo. You can search for a place, use My Location, or add a photo with GPS.",
+      },
+    },
+    featured: {
+      title: "Featured Echoes",
+      intro:
+        "Sample stories generated by PlaceEcho from amazing places around the world. Each card below demonstrates a different experience mode, so the contrast is easy to feel.",
+      allCta: "See all Echoes",
+      allDialogTitle: "All Echoes",
+      allDialogDescription:
+        "Explore a broader PlaceEcho catalog with different tones, structures, and listening styles. Open any Echo to hear a preview or read the full sample story.",
+      whyDifferent: "Why this feels different",
+      listen: "Listen",
+      readStory: "Read Story",
+      audioPreview: "Audio Preview",
+      audioPreviewIntro: "A short spoken sample of this experience style.",
+      stopPreview: "Stop Preview",
+      playPreview: "Play Preview",
+      browserPreview: "This preview uses your browser voice to simulate PlaceEcho narration.",
+      noBrowserPreview:
+        "Audio preview is shown as text here if browser voice playback is unavailable.",
+      highlights: "What stands out",
+      modeSignature: "Mode Signature",
+      experienceDna: "Experience DNA",
+      keyHighlights: "Key Highlights",
+      switchToListen: "Switch to Listen Preview",
+      modeMeta: {
+        Story: {
+          label: "Story",
+          chips: ["Mood-first", "Cinematic", "Character-led"],
+          description: "A more emotional, cinematic take designed to make the place feel alive.",
+        },
+        Historical: {
+          label: "Historical",
+          chips: ["Verified context", "Timeline", "Real people"],
+          description: "Built around facts, chronology, and the forces that shaped the place.",
+        },
+        Guide: {
+          label: "Guide",
+          chips: ["Practical route", "What to notice", "Best moments"],
+          description: "Focused on movement, orientation, and details you can use on the spot.",
+        },
+        "Urban Legend": {
+          label: "Urban Legend",
+          chips: ["Rumor & folklore", "Uneasy mood", "After-dark energy"],
+          description: "A haunting version shaped by whispers, myth, and local imagination.",
+        },
+      },
+      echoes: [
+        {
+          title: "Rome Colosseum",
+          location: "Rome, Italy",
+          mode: "Historical" as EchoMode,
+          rating: 4.9,
+          text: "Walk through emperors, spectacle, and the political machine hidden behind the arena.",
+          focus:
+            "This version explains who built it, why it mattered, and how power was staged in public.",
+          listenScript:
+            "You are standing before a monument built not only for entertainment, but for imperial messaging. The Colosseum rose in the first century under the Flavian emperors, on land reclaimed from Nero's private palace.",
+          paragraphs: [
+            "The Colosseum was more than a stadium. It was a statement by the Flavian dynasty that Rome belonged again to the people after the excesses of Nero.",
+            "Inside, the arena delivered carefully staged violence, engineering brilliance, and mass spectacle.",
+            "A historical Echo focuses on verified context: dates, rulers, urban planning, and the way the monument reflected the values and contradictions of the empire.",
+          ],
+          highlights: [
+            "Built under Vespasian and Titus",
+            "Flavian propaganda in stone",
+            "Arena as social hierarchy",
+          ],
+        },
+        {
+          title: "Tower of London",
+          location: "London, England",
+          mode: "Urban Legend" as EchoMode,
+          rating: 4.9,
+          text: "Ravens, vanished princes, and corridors where rumor still clings to the stone.",
+          focus:
+            "This version leans into the whispers people remember long after the official facts fade.",
+          listenScript:
+            "At the Tower of London, history never arrives alone. It comes wrapped in raven wings, in the shadow of missing princes, in the uneasy feeling that some walls keep secrets on purpose.",
+          paragraphs: [
+            "Some places are remembered for what happened there. The Tower is remembered just as strongly for what people fear may have happened there.",
+            "The ravens are a perfect example. Their presence has been folded into a superstition that says the kingdom will fall if they ever leave.",
+            "A legend-driven Echo does not pretend rumor is documentation. Instead, it explores why certain myths endure.",
+          ],
+          highlights: ["Raven superstition", "Princes in the Tower", "Fear, folklore, and memory"],
+        },
+        {
+          title: "Kyoto Temple",
+          location: "Kyoto, Japan",
+          mode: "Guide" as EchoMode,
+          rating: 4.9,
+          text: "A clear route through the temple grounds, with cues for where to pause and what to notice.",
+          focus: "This version acts like a calm local companion instead of a dramatic narrator.",
+          listenScript:
+            "Start slowly at the entrance and let the first courtyard reset your pace. Notice how the soundscape changes before the architecture does.",
+          paragraphs: [
+            "A guide-style Echo is designed for movement. It doesn't just tell you what a place means; it helps you notice the sequence in which the place reveals itself.",
+            "Rather than focusing on a dramatic arc, this mode points out practical details: where the best views open, when the grounds feel quieter, and which architectural elements visitors often miss.",
+            "The result feels useful and grounded. You get cultural context, but it arrives attached to action.",
+          ],
+          highlights: [
+            "Best route through the grounds",
+            "Details most visitors miss",
+            "On-the-spot orientation",
+          ],
+        },
+        {
+          title: "Eiffel Tower",
+          location: "Paris, France",
+          mode: "Story" as EchoMode,
+          rating: 4.7,
+          text: "A romantic, cinematic story about ambition, evening light, and the feeling of arriving in Paris.",
+          focus:
+            "This version is less about facts and more about atmosphere, emotion, and narrative flow.",
+          listenScript:
+            "By the time the tower catches the late light, Paris has already started turning into a story about arrival.",
+          paragraphs: [
+            "A story-mode Echo treats the place like a narrative stage. The goal is not just to inform you, but to carry you through a beginning, middle, and emotional payoff that fits the setting.",
+            "With the Eiffel Tower, that often means leaning into anticipation: the first glimpse between rooftops, the widening of the avenue, the shift from object to symbol.",
+            "Compared with the historical or guide versions, story mode is freer, warmer, and more sensory.",
+          ],
+          highlights: ["Emotional arc", "Sensory writing", "Place as a scene"],
+        },
+      ],
+    },
+    experienceModes: {
+      title: "Experience Modes",
+      intro: "Explore stories in different ways.",
+      items: [
+        ["Story", "Immersive storytelling inspired by the atmosphere of the place."],
+        ["Historical", "Explore real events, people and moments that shaped the location."],
+        ["Guide", "Practical and inspiring guides to understand what makes the place special."],
+        ["Urban Legend", "Myths, mysteries and local legends passed down through time."],
+      ],
+    },
+    languages: {
+      title: "Multiple Languages",
+      intro: "Natural audio in six languages.",
+      items: ["English", "Hebrew", "French", "German", "Spanish", "Russian"],
+    },
+    screenshots: {
+      title: "How PlaceEcho Works",
+      intro: "Create personalized AI stories from locations, GPS, or photos.",
+      steps: [
+        [
+          "Step 1",
+          "Choose a Location",
+          "Search anywhere in the world, pick a nearby place, or use your current GPS location.",
+        ],
+        [
+          "Step 2",
+          "Pick an Experience",
+          "Choose Story, Historical, Guide, or Urban Legend to shape the style of your journey.",
+        ],
+        [
+          "Step 3",
+          "Generate & Listen",
+          "PlaceEcho creates a personalized story and brings it to life with natural audio.",
+        ],
+        [
+          "Step 4",
+          "Save & Revisit",
+          "Your stories are saved automatically so you can listen again or share them anytime.",
+        ],
+      ],
+      photoBadge: "Optional",
+      photoTitle: "Or start with a photo",
+      photoBody:
+        "Upload a photo with location metadata and PlaceEcho can create a story inspired by where it was taken.",
+      photoNote:
+        "In the app, photos can help PlaceEcho understand the place and generate a more personal story experience.",
+      photoAlt: "PlaceEcho app using a photo with location metadata",
+    },
+    community: {
+      title: "Community",
+      subtitle: "Explore. Create. Share. Inspire.",
+      intro:
+        "PlaceEcho is more than an AI storytelling app. We're building a community of explorers who discover incredible places, create memorable stories, and inspire others to experience the world differently.",
+      items: [
+        [
+          "Share Places",
+          "Recommend unique places you've discovered and help others experience them.",
+        ],
+        [
+          "Share Stories",
+          "Publish your favorite AI-generated stories and inspire explorers around the world.",
+        ],
+        [
+          "Early Explorer",
+          "Get early access to new features, experiences and improvements before public release.",
+        ],
+        [
+          "Build Together",
+          "Help shape the future of PlaceEcho by sharing ideas, voting on features and providing feedback.",
+        ],
+      ],
+      panelBadge: "Early Access",
+      cardTitle: "Become an Early Explorer",
+      cardBody:
+        "Join the first members of the PlaceEcho community and help build the future of AI-powered place experiences.",
+      benefits: [
+        "Early access to upcoming features",
+        "Bonus Story Credits during Beta",
+        "Influence future product development",
+        "Exclusive product updates",
+      ],
+      cardCta: "Join Early Access",
+      cardNote: "Free to join • No spam • Leave anytime",
+      trustMessage: "Join the first generation of PlaceEcho Explorers.",
+      futureTitle: "The future we're building together",
+      futureBody:
+        "PlaceEcho is evolving beyond AI story generation into a community centered around places, exploration, and storytelling. Early Explorers will help shape what comes next.",
+      futureItems: [
+        "Share AI-generated stories",
+        "Share favorite places",
+        "Discover hidden gems",
+        "Follow other explorers",
+        "Like and comment on stories",
+        "Save favorite places",
+        "Create personal collections",
+        "Join community challenges",
+        "Weekly featured stories",
+        "Top Explorers leaderboard",
+        "Share to LinkedIn, Facebook, Instagram, and X",
+      ],
+    },
+    about: {
+      title: "About PlaceEcho",
+      body: [
+        "PlaceEcho transforms places into meaningful experiences through AI-powered storytelling.",
+        "Our platform combines immersive stories, natural voice narration, cultural context, and local discoveries to help people experience the world in a deeper, more personal way.",
+        "But PlaceEcho is more than an AI storytelling app.",
+        "We're building a global community of explorers who discover remarkable places, create unforgettable stories, and inspire others to explore the world through new perspectives.",
+        "Whether you're visiting a famous landmark or a hidden corner of your neighborhood, every place has a story and every story is better when it's shared.",
+      ],
+      imageAlt: "A traveler discovering stories with PlaceEcho",
+      pillars: ["AI-Powered Stories", "Natural Audio", "Privacy Focused", "Made for Explorers"],
+    },
+    finalCta: {
+      title: "Ready to Hear the Story Around You?",
+      body: "Generate your first Echo in seconds.",
+      cta: "Try PlaceEcho Free",
+      note: "No credit card required",
+    },
+  },
+  he: {
+    metaTitle: "PlaceEcho - לכל מקום יש יותר מסיפור אחד",
+    metaDescription:
+      "PlaceEcho הופכת כל מיקום לחוויית אודיו אישית מבוססת AI: סיפורים סוחפים, מסעות היסטוריים, מדריכים מקומיים ואגדות אורבניות.",
+    hero: {
+      badge: "חוויות מקום מבוססות AI",
+      titleLine1: "לכל מקום יש",
+      titleLine2: "יותר מ",
+      titleAccent: "סיפור אחד",
+      body: "PlaceEcho הופכת כל מיקום לחוויה אישית מבוססת AI: סיפורים סוחפים, מסעות היסטוריים, מדריכים מקומיים ואגדות אורבניות עם אודיו טבעי בכמה שפות.",
+      ctaPrimary: "נסו את PlaceEcho בחינם",
+      ctaSecondary: "צפו בדמו",
+      features: ["המיקום הנוכחי", "בכל מקום בעולם", "סיפור מתמונה", "קריינות AI", "כמה שפות"],
+    },
+    demo: {
+      title: "נסו את הדמו",
+      intro: "ראו איך PlaceEcho הופכת כל מקום לחוויית סיפור בלתי נשכחת.",
+      checks: ["בחרו מקום או העלו תמונה", "בחרו חוויה", "צרו והאזינו"],
+      cta: "נסו את הדמו",
+      formTitle: "נסו את הדמו",
+      searchLabel: "חיפוש מקום",
+      searchPlaceholder: "הקלידו עיר, אתר מוכר או קואורדינטות GPS",
+      searchLoading: "מחפש מקומות...",
+      searchEmpty: "עדיין לא נמצאו מקומות מתאימים.",
+      useMyLocation: "השתמשו במיקום שלי",
+      findingLocation: "מאתר מיקום...",
+      unavailable: "הדמו לא זמין",
+      searchHelp: "חפשו בטקסט, בחרו הצעה או הדביקו קואורדינטות GPS.",
+      photoLabel: "תמונה",
+      choosePhoto: "בחירת תמונה",
+      noPhotoSelected: "לא נבחרה תמונה",
+      gpsRequired:
+        "כדי להשתמש בדמו, בחרו תמונה עם נתוני GPS כדי שנוכל להראות היכן היא צולמה. באפליקציית PlaceEcho המלאה זה עובד גם בלי GPS.",
+      demoPhoto: "תמונת דמו",
+      removePhoto: "הסרה",
+      photoReading: "קורא נתוני GPS מהתמונה...",
+      photoResolved: "זוהה מיקום באמצעות ה-API הציבורי של PlaceEcho לפי נתוני ה-GPS שבתמונה.",
+      photoResolvedFallback: "נמצאו קואורדינטות GPS בתמונה, אבל כרגע לא הצלחנו לזהות שם מקום.",
+      photoError: "לא הצלחנו לקרוא את התמונה. נסו קובץ JPG עם נתוני GPS.",
+      lengthLabel: "אורך",
+      lengthAria: "אורך הסיפור",
+      lengthOptions: { short: "קצר", medium: "בינוני", long: "ארוך" },
+      experienceLabel: "חוויה",
+      experienceAria: "סוג חוויה",
+      experienceOptions: {
+        story: "Story",
+        historical: "Historical",
+        guide: "Guide",
+        urbanLegend: "Urban Legend",
+      },
+      languageLabel: "שפה",
+      languageAria: "שפת הסיפור",
+      languageOptions: {
+        english: "אנגלית",
+        german: "גרמנית",
+        hebrew: "עברית",
+        french: "צרפתית",
+        russian: "רוסית",
+        spanish: "ספרדית",
+      },
+      quotaCta: "עברו לאפליקציית PlaceEcho",
+      generate: "יצירת סיפור",
+      generating: "יוצר...",
+      liveResult: "תוצאת דמו חיה",
+      cached: "תוצאה שמורה",
+      degraded: "מצב מצומצם",
+      generatedFromApi: "נוצר דרך ה-API הציבורי של PlaceEcho",
+      storyText: "טקסט הסיפור",
+      noStoryText: "ה-API החזיר את הסיפור בלי גוף טקסט.",
+      listen: "האזנה",
+      stopListening: "עצירת ההאזנה",
+      listenToStory: "האזינו לסיפור",
+      audioAvailable: "השמיעו את גרסת האודיו שנוצרה עבור הסיפור הזה.",
+      browserVoice: "אם לא נוצר אודיו, הדמו ישתמש בקול של הדפדפן כדי להקריא את הסיפור.",
+      noAudio: "לא נוצר אודיו בתוצאה הזו, והדפדפן כאן לא תומך בהקראה.",
+      audioUnsupported: "הדפדפן שלכם לא תומך בהשמעת אודיו.",
+      storyDetails: "פרטי הסיפור",
+      mode: "מצב",
+      language: "שפה",
+      locationConfidence: "רמת ביטחון במיקום",
+      shareUrl: "קישור שיתוף",
+      errors: {
+        quota:
+          "הדמו הציבורי לא זמין כרגע. נסו את אפליקציית PlaceEcho המלאה כדי להמשיך לגלות מקומות וליצור סיפורים.",
+        generic: "משהו השתבש בזמן השימוש בדמו.",
+        playback: "לא הצלחנו להתחיל השמעת אודיו כרגע. נסו שוב.",
+        noPlayback: "השמעת אודיו לא זמינה עבור תוצאת הדמו הזו כרגע.",
+        locationUnavailable: "גישה למיקום לא זמינה בדפדפן הזה. חפשו מקום או העלו תמונה במקום.",
+        locationFailed: "לא הצלחנו לקבל את המיקום שלכם. אפשרו GPS, חפשו מקום או העלו תמונה.",
+        locationRequired:
+          "כדי להשתמש בדמו, בחרו מיקום או העלו תמונה. אפשר לחפש מקום, להשתמש במיקום שלי או להוסיף תמונה עם GPS.",
+      },
+    },
+    featured: {
+      title: "Echoes נבחרים",
+      intro:
+        "דוגמאות לסיפורים ש-PlaceEcho יצרה ממקומות מרתקים ברחבי העולם. כל כרטיס מציג מצב חוויה אחר כדי להמחיש את ההבדל.",
+      allCta: "לכל ה-Echoes",
+      allDialogTitle: "כל ה-Echoes",
+      allDialogDescription:
+        "גלו קטלוג רחב יותר של PlaceEcho עם טונים, מבנים וסגנונות האזנה שונים. פתחו כל Echo כדי לשמוע תצוגה מקדימה או לקרוא את הדוגמה המלאה.",
+      whyDifferent: "למה זה מרגיש אחרת",
+      listen: "האזנה",
+      readStory: "קריאת סיפור",
+      audioPreview: "תצוגת אודיו",
+      audioPreviewIntro: "דוגמת שמע קצרה לסגנון החוויה הזה.",
+      stopPreview: "עצירת תצוגה",
+      playPreview: "השמעת תצוגה",
+      browserPreview: "התצוגה הזו משתמשת בקול של הדפדפן כדי לדמות קריינות של PlaceEcho.",
+      noBrowserPreview: "אם אין תמיכה קולית בדפדפן, תצוגת האודיו מוצגת כאן כטקסט.",
+      highlights: "מה בולט כאן",
+      modeSignature: "חתימת המצב",
+      experienceDna: "ה-DNA של החוויה",
+      keyHighlights: "נקודות מפתח",
+      switchToListen: "מעבר לתצוגת האזנה",
+      modeMeta: {
+        Story: {
+          label: "Story",
+          chips: ["רגש קודם", "קולנועי", "מונע דמות"],
+          description: "גישה רגשית וקולנועית יותר, שנועדה לגרום למקום להרגיש חי.",
+        },
+        Historical: {
+          label: "Historical",
+          chips: ["הקשר מאומת", "ציר זמן", "אנשים אמיתיים"],
+          description: "בנוי סביב עובדות, כרונולוגיה והכוחות שעיצבו את המקום.",
+        },
+        Guide: {
+          label: "Guide",
+          chips: ["מסלול פרקטי", "על מה לשים לב", "הרגעים הכי טובים"],
+          description: "מתמקד בתנועה, התמצאות ופרטים שאפשר להשתמש בהם בזמן אמת.",
+        },
+        "Urban Legend": {
+          label: "Urban Legend",
+          chips: ["שמועות ופולקלור", "אווירה לא שקטה", "אנרגיית לילה"],
+          description: "גרסה מסתורית שנבנית מלחשושים, מיתוסים ודמיון מקומי.",
+        },
+      },
+      echoes: [
+        {
+          title: "הקולוסיאום ברומא",
+          location: "רומא, איטליה",
+          mode: "Historical" as EchoMode,
+          rating: 4.9,
+          text: "מסע דרך קיסרים, מופעי ראווה והמכונה הפוליטית שהסתתרה מאחורי הזירה.",
+          focus: "הגרסה הזו מסבירה מי בנה אותו, למה היה חשוב ואיך כוח הוצג בפומבי.",
+          listenScript:
+            "אתם עומדים מול מונומנט שנבנה לא רק לבידור, אלא גם למסרים קיסריים. הקולוסיאום עלה במאה הראשונה תחת הקיסרים הפלביים.",
+          paragraphs: [
+            "הקולוסיאום היה הרבה יותר מאצטדיון. הוא היה הצהרה של השושלת הפלבית שרומא שייכת שוב לעם.",
+            "בתוך הזירה התרחשו מופעי ראווה אלימים ומדויקים, עם הנדסה מרשימה ותכנון חברתי קשוח.",
+            "Echo היסטורי מתמקד בהקשר מאומת: תאריכים, שליטים, תכנון עירוני והערכים שהמבנה שיקף.",
+          ],
+          highlights: ["נבנה תחת אספסיאנוס וטיטוס", "תעמולה פלבית באבן", "הזירה כהיררכיה חברתית"],
+        },
+        {
+          title: "מצודת לונדון",
+          location: "לונדון, אנגליה",
+          mode: "Urban Legend" as EchoMode,
+          rating: 4.9,
+          text: "עורבים, נסיכים שנעלמו ומסדרונות שבהם השמועה עדיין נדבקת לאבן.",
+          focus: "הגרסה הזו נשענת על הלחישות שאנשים זוכרים הרבה אחרי שהעובדות דוהות.",
+          listenScript:
+            "במצודת לונדון ההיסטוריה אף פעם לא מגיעה לבד. היא עטופה בכנפי עורבים, בצל של נסיכים חסרים ובתחושה שחלק מהקירות שומרים סודות בכוונה.",
+          paragraphs: [
+            "יש מקומות שנזכרים בזכות מה שקרה בהם. את המצודה זוכרים באותה מידה בזכות מה שאנשים חוששים שקרה בה.",
+            "העורבים הם דוגמה מושלמת: נוכחותם נשזרה באמונה טפלה שלפיה הממלכה תיפול אם יעזבו.",
+            "Echo שמונע מאגדה אורבנית לא מתיימר להציג שמועה כתיעוד, אלא בודק למה מיתוסים מסוימים מחזיקים מעמד.",
+          ],
+          highlights: ["אמונת העורבים", "הנסיכים במצודה", "פחד, פולקלור וזיכרון"],
+        },
+        {
+          title: "מקדש בקיוטו",
+          location: "קיוטו, יפן",
+          mode: "Guide" as EchoMode,
+          rating: 4.9,
+          text: "מסלול ברור דרך שטחי המקדש, עם רמזים איפה לעצור ועל מה לשים לב.",
+          focus: "הגרסה הזו מתפקדת כמו מלווה מקומי רגוע ולא כמו מספר דרמטי.",
+          listenScript:
+            "התחילו לאט בכניסה ותנו לחצר הראשונה לאפס את הקצב. שימו לב איך הצלילים משתנים לפני שהאדריכלות משתנה.",
+          paragraphs: [
+            "Echo בסגנון Guide בנוי לתנועה. הוא לא רק מסביר מה המקום אומר, אלא עוזר לכם לשים לב לרצף שבו המקום נחשף.",
+            "במקום לבנות דרמה, המצב הזה מצביע על פרטים שימושיים: איפה הנוף נפתח, מתי שקט יותר ומה רוב המבקרים מפספסים.",
+            "התוצאה מרגישה שימושית ומחוברת לקרקע. ההקשר התרבותי מגיע צמוד לפעולה.",
+          ],
+          highlights: ["המסלול הטוב ביותר", "פרטים שמבקרים מפספסים", "התמצאות בזמן אמת"],
+        },
+        {
+          title: "מגדל אייפל",
+          location: "פריז, צרפת",
+          mode: "Story" as EchoMode,
+          rating: 4.7,
+          text: "סיפור רומנטי וקולנועי על שאפתנות, אור ערב והתחושה של הגעה לפריז.",
+          focus: "הגרסה הזו עוסקת פחות בעובדות ויותר באווירה, רגש וזרימה נרטיבית.",
+          listenScript:
+            "עד שהמגדל תופס את האור המאוחר, פריז כבר מתחילה להפוך לסיפור על הגעה. הברזל הופך לתחרה מול השמיים.",
+          paragraphs: [
+            "Echo במצב Story מתייחס למקום כבמה נרטיבית. המטרה היא לא רק ליידע, אלא להעביר אתכם דרך התחלה, אמצע ושיא רגשי.",
+            "במגדל אייפל זה אומר לעיתים קרובות להישען על ציפייה: ההצצה הראשונה בין הגגות, התרחבות השדרה והמעבר מחפץ לסמל.",
+            "לעומת הגרסאות ההיסטורית או המדריכה, מצב Story חופשי, חם וחושי יותר.",
+          ],
+          highlights: ["קשת רגשית", "כתיבה חושית", "המקום כסצנה"],
+        },
+      ],
+    },
+    experienceModes: {
+      title: "מצבי חוויה",
+      intro: "גלו סיפורים בדרכים שונות.",
+      items: [
+        ["Story", "סיפור סוחף בהשראת האווירה של המקום."],
+        ["Historical", "גלו אירועים, אנשים ורגעים אמיתיים שעיצבו את המקום."],
+        ["Guide", "מדריכים פרקטיים ומעוררי השראה כדי להבין מה מיוחד במקום."],
+        ["Urban Legend", "מיתוסים, מסתורין ואגדות מקומיות שעוברות מדור לדור."],
+      ],
+    },
+    languages: {
+      title: "כמה שפות",
+      intro: "אודיו טבעי בשש שפות.",
+      items: ["אנגלית", "עברית", "צרפתית", "גרמנית", "ספרדית", "רוסית"],
+    },
+    screenshots: {
+      title: "איך PlaceEcho עובדת",
+      intro: "צרו סיפורי AI אישיים ממיקומים, GPS או תמונות.",
+      steps: [
+        [
+          "שלב 1",
+          "בחירת מיקום",
+          "חפשו בכל מקום בעולם, בחרו מקום קרוב או השתמשו במיקום ה-GPS הנוכחי שלכם.",
+        ],
+        [
+          "שלב 2",
+          "בחירת חוויה",
+          "בחרו Story, Historical, Guide או Urban Legend כדי לעצב את סגנון המסע שלכם.",
+        ],
+        ["שלב 3", "יוצרים ומאזינים", "PlaceEcho יוצרת סיפור אישי ומחיה אותו עם אודיו טבעי."],
+        [
+          "שלב 4",
+          "שומרים וחוזרים",
+          "הסיפורים שלכם נשמרים אוטומטית כך שאפשר להאזין שוב או לשתף בכל זמן.",
+        ],
+      ],
+      photoBadge: "אופציונלי",
+      photoTitle: "או להתחיל מתמונה",
+      photoBody:
+        "העלו תמונה עם נתוני מיקום ו-PlaceEcho תוכל ליצור סיפור בהשראת המקום שבו היא צולמה.",
+      photoNote: "באפליקציה, תמונות עוזרות ל-PlaceEcho להבין את המקום וליצור חוויה אישית יותר.",
+      photoAlt: "אפליקציית PlaceEcho משתמשת בתמונה עם נתוני מיקום",
+    },
+    community: {
+      title: "קהילה",
+      suffix: "(בקרוב)",
+      intro: "PlaceEcho נמצאת בפיתוח פעיל. אנחנו בונים קהילה של חוקרים סקרנים ואוהבי סיפורים.",
+      items: [
+        ["עזרו לעצב פיצ'רים", "אנחנו מעריכים את הפידבק שלכם"],
+        ["שתפו רעיונות", "הציעו מקומות חדשים"],
+        ["גישה מוקדמת", "היו הראשונים לגלות"],
+        ["קהילה עתידית", "סיפורים, יוצרים ועוד"],
+      ],
+      cardTitle: "היו חוקרים מוקדמים",
+      cardBody: "הצטרפו מוקדם ועזרו לנו לבנות את העתיד של חוויות מקום מבוססות AI.",
+      cardCta: "הצטרפות לגישה מוקדמת",
+    },
+    about: {
+      title: "אודות PlaceEcho",
+      body: "PlaceEcho נוצרה כדי להפוך כל מקום למשמעותי יותר באמצעות סיפורים מבוססי AI, אודיו טבעי, הקשר תרבותי וגילוי אישי. הטכנולוגיה שלנו הופכת כל מיקום לחוויה משמעותית דרך סיפורים, תובנות היסטוריות, מדריכים ואגדות.",
+      imageAlt: "מטייל מגלה סיפורים עם PlaceEcho",
+      pillars: ["סיפורים מבוססי AI", "אודיו טבעי", "פרטיות תחילה", "נבנה למגלים"],
+    },
+    finalCta: {
+      title: "מוכנים לשמוע את הסיפור שמסביבכם?",
+      body: "צרו את ה-Echo הראשון שלכם תוך שניות.",
+      cta: "נסו את PlaceEcho בחינם",
+      note: "ללא צורך בכרטיס אשראי",
+    },
+  },
+} as const;
+
+export const HOME_COMMUNITY_HE = {
+  title: "\u05e7\u05d4\u05d9\u05dc\u05d4",
+  subtitle:
+    "\u05d2\u05dc\u05d5. \u05e6\u05e8\u05d5. \u05e9\u05ea\u05e4\u05d5. \u05d4\u05e9\u05e8\u05d5.",
+  intro:
+    "PlaceEcho \u05d4\u05d9\u05d0 \u05d4\u05e8\u05d1\u05d4 \u05d9\u05d5\u05ea\u05e8 \u05de\u05d0\u05e4\u05dc\u05d9\u05e7\u05e6\u05d9\u05d9\u05ea \u05e1\u05d9\u05e4\u05d5\u05e8\u05d9\u05dd \u05de\u05d1\u05d5\u05e1\u05e1\u05ea AI. \u05d0\u05e0\u05d7\u05e0\u05d5 \u05d1\u05d5\u05e0\u05d9\u05dd \u05e7\u05d4\u05d9\u05dc\u05d4 \u05e9\u05dc \u05de\u05d2\u05dc\u05d9\u05dd \u05e9\u05d7\u05d5\u05e9\u05e4\u05d9\u05dd \u05de\u05e7\u05d5\u05de\u05d5\u05ea \u05de\u05d9\u05d5\u05d7\u05d3\u05d9\u05dd, \u05d9\u05d5\u05e6\u05e8\u05d9\u05dd \u05e1\u05d9\u05e4\u05d5\u05e8\u05d9\u05dd \u05d1\u05dc\u05ea\u05d9 \u05e0\u05e9\u05db\u05d7\u05d9\u05dd \u05d5\u05de\u05e2\u05d5\u05e8\u05e8\u05d9\u05dd \u05d0\u05d7\u05e8\u05d9\u05dd \u05dc\u05d7\u05d5\u05d5\u05ea \u05d0\u05ea \u05d4\u05e2\u05d5\u05dc\u05dd \u05d0\u05d7\u05e8\u05ea.",
+  items: [
+    [
+      "\u05e9\u05ea\u05e4\u05d5 \u05de\u05e7\u05d5\u05de\u05d5\u05ea",
+      "\u05d4\u05de\u05dc\u05d9\u05e6\u05d5 \u05e2\u05dc \u05de\u05e7\u05d5\u05de\u05d5\u05ea \u05d9\u05d9\u05d7\u05d5\u05d3\u05d9\u05d9\u05dd \u05e9\u05d2\u05d9\u05dc\u05d9\u05ea\u05dd \u05d5\u05e2\u05d6\u05e8\u05d5 \u05dc\u05d0\u05d7\u05e8\u05d9\u05dd \u05dc\u05d7\u05d5\u05d5\u05ea \u05d0\u05d5\u05ea\u05dd.",
+    ],
+    [
+      "\u05e9\u05ea\u05e4\u05d5 \u05e1\u05d9\u05e4\u05d5\u05e8\u05d9\u05dd",
+      "\u05e4\u05e8\u05e1\u05de\u05d5 \u05d0\u05ea \u05e1\u05d9\u05e4\u05d5\u05e8\u05d9 AI \u05d4\u05d0\u05d4\u05d5\u05d1\u05d9\u05dd \u05e2\u05dc\u05d9\u05db\u05dd \u05d5\u05d4\u05e2\u05e0\u05d9\u05e7\u05d5 \u05d4\u05e9\u05e8\u05d0\u05d4 \u05dc\u05de\u05d2\u05dc\u05d9\u05dd \u05d1\u05e8\u05d7\u05d1\u05d9 \u05d4\u05e2\u05d5\u05dc\u05dd.",
+    ],
+    [
+      "\u05d7\u05d5\u05e7\u05e8\u05d9\u05dd \u05de\u05d5\u05e7\u05d3\u05de\u05d9\u05dd",
+      "\u05e7\u05d1\u05dc\u05d5 \u05d2\u05d9\u05e9\u05d4 \u05de\u05d5\u05e7\u05d3\u05de\u05ea \u05dc\u05d9\u05db\u05d5\u05dc\u05d5\u05ea, \u05d7\u05d5\u05d5\u05d9\u05d5\u05ea \u05d5\u05e9\u05d9\u05e4\u05d5\u05e8\u05d9\u05dd \u05dc\u05e4\u05e0\u05d9 \u05d4\u05d4\u05e9\u05e7\u05d4 \u05dc\u05e6\u05d9\u05d1\u05d5\u05e8.",
+    ],
+    [
+      "\u05d1\u05d5\u05e0\u05d9\u05dd \u05d9\u05d7\u05d3",
+      "\u05e2\u05d6\u05e8\u05d5 \u05dc\u05e2\u05e6\u05d1 \u05d0\u05ea \u05d4\u05e2\u05ea\u05d9\u05d3 \u05e9\u05dc PlaceEcho \u05e2\u05dd \u05e8\u05e2\u05d9\u05d5\u05e0\u05d5\u05ea, \u05d4\u05e6\u05d1\u05e2\u05d5\u05ea \u05d5\u05e4\u05d9\u05d3\u05d1\u05e7.",
+    ],
+  ],
+  panelBadge: "\u05d2\u05d9\u05e9\u05d4 \u05de\u05d5\u05e7\u05d3\u05de\u05ea",
+  cardTitle:
+    "\u05d4\u05e4\u05db\u05d5 \u05dc\u05d7\u05d5\u05e7\u05e8\u05d9\u05dd \u05de\u05d5\u05e7\u05d3\u05de\u05d9\u05dd",
+  cardBody:
+    "\u05d4\u05e6\u05d8\u05e8\u05e4\u05d5 \u05dc\u05d7\u05d1\u05e8\u05d9\u05dd \u05d4\u05e8\u05d0\u05e9\u05d5\u05e0\u05d9\u05dd \u05d1\u05e7\u05d4\u05d9\u05dc\u05ea PlaceEcho \u05d5\u05e2\u05d6\u05e8\u05d5 \u05dc\u05d1\u05e0\u05d5\u05ea \u05d0\u05ea \u05d4\u05e2\u05ea\u05d9\u05d3 \u05e9\u05dc \u05d7\u05d5\u05d5\u05d9\u05d5\u05ea \u05de\u05e7\u05d5\u05dd \u05de\u05d1\u05d5\u05e1\u05e1\u05d5\u05ea AI.",
+  benefits: [
+    "\u05d2\u05d9\u05e9\u05d4 \u05de\u05d5\u05e7\u05d3\u05de\u05ea \u05dc\u05ea\u05db\u05d5\u05e0\u05d5\u05ea \u05d4\u05e7\u05e8\u05d5\u05d1\u05d5\u05ea",
+    "\u05e7\u05e8\u05d3\u05d9\u05d8\u05d9 \u05e1\u05d9\u05e4\u05d5\u05e8 \u05d1\u05d5\u05e0\u05d5\u05e1 \u05d1\u05de\u05d4\u05dc\u05da \u05d4\u05d1\u05d8\u05d0",
+    "\u05d4\u05e9\u05e4\u05e2\u05d4 \u05e2\u05dc \u05db\u05d9\u05d5\u05d5\u05df \u05d4\u05de\u05d5\u05e6\u05e8",
+    "\u05e2\u05d3\u05db\u05d5\u05e0\u05d9 \u05de\u05d5\u05e6\u05e8 \u05d1\u05dc\u05e2\u05d3\u05d9\u05d9\u05dd",
+  ],
+  cardCta:
+    "\u05d4\u05e6\u05d8\u05e8\u05e4\u05d5 \u05dc\u05d2\u05d9\u05e9\u05d4 \u05de\u05d5\u05e7\u05d3\u05de\u05ea",
+  cardNote:
+    "\u05d7\u05d9\u05e0\u05dd \u05dc\u05d4\u05e6\u05d8\u05e8\u05e4\u05d5\u05ea \u2022 \u05d1\u05dc\u05d9 \u05e1\u05e4\u05d0\u05dd \u2022 \u05d0\u05e4\u05e9\u05e8 \u05dc\u05e2\u05d6\u05d5\u05d1 \u05d1\u05db\u05dc \u05e8\u05d2\u05e2",
+  trustMessage:
+    "\u05d4\u05e6\u05d8\u05e8\u05e4\u05d5 \u05dc\u05d3\u05d5\u05e8 \u05d4\u05e8\u05d0\u05e9\u05d5\u05df \u05e9\u05dc \u05d7\u05d5\u05e7\u05e8\u05d9 PlaceEcho.",
+  futureTitle:
+    "\u05d4\u05e2\u05ea\u05d9\u05d3 \u05e9\u05d0\u05e0\u05d7\u05e0\u05d5 \u05d1\u05d5\u05e0\u05d9\u05dd \u05d9\u05d7\u05d3",
+  futureBody:
+    "PlaceEcho \u05de\u05ea\u05e7\u05d3\u05de\u05ea \u05de\u05e2\u05d1\u05e8 \u05dc\u05d9\u05e6\u05d9\u05e8\u05ea \u05e1\u05d9\u05e4\u05d5\u05e8\u05d9 AI \u05dc\u05e7\u05d4\u05d9\u05dc\u05d4 \u05e9\u05de\u05e8\u05db\u05d6\u05d4 \u05de\u05e7\u05d5\u05de\u05d5\u05ea, \u05d2\u05d9\u05dc\u05d5\u05d9 \u05d5\u05e1\u05d8\u05d5\u05e8\u05d9\u05d8\u05dc\u05d9\u05e0\u05d2. \u05d4\u05d7\u05d5\u05e7\u05e8\u05d9\u05dd \u05d4\u05de\u05d5\u05e7\u05d3\u05de\u05d9\u05dd \u05d9\u05e2\u05d6\u05e8\u05d5 \u05dc\u05e2\u05e6\u05d1 \u05d0\u05ea \u05de\u05d4 \u05e9\u05d9\u05d2\u05d9\u05e2 \u05d1\u05d4\u05de\u05e9\u05da.",
+  futureItems: [
+    "\u05e9\u05ea\u05e4\u05d5 \u05e1\u05d9\u05e4\u05d5\u05e8\u05d9 AI",
+    "\u05e9\u05ea\u05e4\u05d5 \u05de\u05e7\u05d5\u05de\u05d5\u05ea \u05d0\u05d4\u05d5\u05d1\u05d9\u05dd",
+    "\u05d2\u05dc\u05d5 \u05e4\u05e0\u05d9\u05e0\u05d9\u05dd \u05e0\u05e1\u05ea\u05e8\u05d5\u05ea",
+    "\u05e2\u05e7\u05d1\u05d5 \u05d0\u05d7\u05e8\u05d9 \u05de\u05d2\u05dc\u05d9\u05dd \u05d0\u05d7\u05e8\u05d9\u05dd",
+    "\u05e2\u05e9\u05d5 \u05dc\u05d9\u05d9\u05e7 \u05d5\u05d4\u05d2\u05d9\u05d1\u05d5 \u05dc\u05e1\u05d9\u05e4\u05d5\u05e8\u05d9\u05dd",
+    "\u05e9\u05de\u05e8\u05d5 \u05de\u05e7\u05d5\u05de\u05d5\u05ea \u05de\u05d5\u05e2\u05d3\u05e4\u05d9\u05dd",
+    "\u05e6\u05e8\u05d5 \u05d0\u05d5\u05e1\u05e4\u05d9\u05dd \u05d0\u05d9\u05e9\u05d9\u05d9\u05dd",
+    "\u05d4\u05e6\u05d8\u05e8\u05e4\u05d5 \u05dc\u05d0\u05ea\u05d2\u05e8\u05d9\u05dd \u05e7\u05d4\u05d9\u05dc\u05ea\u05d9\u05d9\u05dd",
+    "\u05e1\u05d9\u05e4\u05d5\u05e8\u05d9\u05dd \u05e0\u05d1\u05d7\u05e8\u05d9\u05dd \u05db\u05dc \u05e9\u05d1\u05d5\u05e2",
+    "\u05dc\u05d5\u05d7 \u05de\u05d5\u05d1\u05d9\u05dc\u05d9 \u05de\u05d2\u05dc\u05d9\u05dd",
+    "\u05e9\u05d9\u05ea\u05d5\u05e3 \u05dc-LinkedIn, Facebook, Instagram \u05d5-X",
+  ],
+} as const;
+
+export const HOME_ABOUT_HE = {
+  title: "\u05d0\u05d5\u05d3\u05d5\u05ea PlaceEcho",
+  body: [
+    "\u0050\u006c\u0061\u0063\u0065\u0045\u0063\u0068\u006f \u05d4\u05d5\u05e4\u05db\u05ea \u05de\u05e7\u05d5\u05de\u05d5\u05ea \u05dc\u05d7\u05d5\u05d5\u05d9\u05d5\u05ea \u05de\u05e9\u05de\u05e2\u05d5\u05ea\u05d9\u05d5\u05ea \u05d9\u05d5\u05ea\u05e8 \u05d1\u05d0\u05de\u05e6\u05e2\u05d5\u05ea \u05e1\u05d8\u05d5\u05e8\u05d9\u05d8\u05dc\u05d9\u05e0\u05d2 \u05de\u05d1\u05d5\u05e1\u05e1 AI.",
+    "\u05d4\u05e4\u05dc\u05d8\u05e4\u05d5\u05e8\u05de\u05d4 \u05e9\u05dc\u05e0\u05d5 \u05de\u05e9\u05dc\u05d1\u05ea \u05e1\u05d9\u05e4\u05d5\u05e8\u05d9\u05dd \u05e1\u05d5\u05d7\u05e4\u05d9\u05dd, \u05e7\u05e8\u05d9\u05d9\u05e0\u05d5\u05ea \u05e7\u05d5\u05dc \u05d8\u05d1\u05e2\u05d9\u05ea, \u05d4\u05e7\u05e9\u05e8 \u05ea\u05e8\u05d1\u05d5\u05ea\u05d9 \u05d5\u05ea\u05d2\u05dc\u05d9\u05d5\u05ea \u05de\u05e7\u05d5\u05de\u05d9\u05d5\u05ea \u05db\u05d3\u05d9 \u05dc\u05e2\u05d6\u05d5\u05e8 \u05dc\u05d0\u05e0\u05e9\u05d9\u05dd \u05dc\u05d7\u05d5\u05d5\u05ea \u05d0\u05ea \u05d4\u05e2\u05d5\u05dc\u05dd \u05d1\u05d0\u05d5\u05e4\u05df \u05e2\u05de\u05d5\u05e7 \u05d5\u05d0\u05d9\u05e9\u05d9 \u05d9\u05d5\u05ea\u05e8.",
+    "\u05d0\u05d1\u05dc \u0050\u006c\u0061\u0063\u0065\u0045\u0063\u0068\u006f \u05d4\u05d9\u05d0 \u05d4\u05e8\u05d1\u05d4 \u05d9\u05d5\u05ea\u05e8 \u05de\u05d0\u05e4\u05dc\u05d9\u05e7\u05e6\u05d9\u05d9\u05ea \u05e1\u05d9\u05e4\u05d5\u05e8\u05d9\u05dd \u05de\u05d1\u05d5\u05e1\u05e1\u05ea AI.",
+    "\u05d0\u05e0\u05d7\u05e0\u05d5 \u05d1\u05d5\u05e0\u05d9\u05dd \u05e7\u05d4\u05d9\u05dc\u05d4 \u05d2\u05dc\u05d5\u05d1\u05dc\u05d9\u05ea \u05e9\u05dc \u05de\u05d2\u05dc\u05d9\u05dd \u05e9\u05d7\u05d5\u05e9\u05e4\u05d9\u05dd \u05de\u05e7\u05d5\u05de\u05d5\u05ea \u05de\u05e8\u05d4\u05d9\u05d1\u05d9\u05dd, \u05d9\u05d5\u05e6\u05e8\u05d9\u05dd \u05e1\u05d9\u05e4\u05d5\u05e8\u05d9\u05dd \u05d1\u05dc\u05ea\u05d9 \u05e0\u05e9\u05db\u05d7\u05d9\u05dd \u05d5\u05de\u05e2\u05d5\u05e8\u05e8\u05d9\u05dd \u05d0\u05d7\u05e8\u05d9\u05dd \u05dc\u05d7\u05e7\u05d5\u05e8 \u05d0\u05ea \u05d4\u05e2\u05d5\u05dc\u05dd \u05de\u05d3\u05e8\u05db\u05d9 \u05d4\u05ea\u05d1\u05d5\u05e0\u05e0\u05d5\u05ea \u05d7\u05d3\u05e9\u05d5\u05ea.",
+    "\u05d1\u05d9\u05df \u05d0\u05dd \u05d0\u05ea\u05dd \u05de\u05d1\u05e7\u05e8\u05d9\u05dd \u05d1\u05d0\u05ea\u05e8 \u05de\u05d5\u05db\u05e8 \u05d0\u05d5 \u05d1\u05e4\u05d9\u05e0\u05d4 \u05e0\u05e1\u05ea\u05e8\u05ea \u05d1\u05e9\u05db\u05d5\u05e0\u05d4 \u05e9\u05dc\u05db\u05dd, \u05dc\u05db\u05dc \u05de\u05e7\u05d5\u05dd \u05d9\u05e9 \u05e1\u05d9\u05e4\u05d5\u05e8 \u05d5\u05db\u05dc \u05e1\u05d9\u05e4\u05d5\u05e8 \u05de\u05e7\u05d1\u05dc \u05e2\u05d5\u05e6\u05de\u05d4 \u05d2\u05d3\u05d5\u05dc\u05d4 \u05d9\u05d5\u05ea\u05e8 \u05db\u05e9\u05de\u05e9\u05ea\u05e4\u05d9\u05dd \u05d0\u05d5\u05ea\u05d5.",
+  ],
+  imageAlt:
+    "\u05de\u05d8\u05d9\u05d9\u05dc \u05de\u05d2\u05dc\u05d4 \u05e1\u05d9\u05e4\u05d5\u05e8\u05d9\u05dd \u05e2\u05dd PlaceEcho",
+  pillars: [
+    "\u05e1\u05d9\u05e4\u05d5\u05e8\u05d9\u05dd \u05de\u05d1\u05d5\u05e1\u05e1\u05d9 AI",
+    "\u05d0\u05d5\u05d3\u05d9\u05d5 \u05d8\u05d1\u05e2\u05d9",
+    "\u05e4\u05e8\u05d8\u05d9\u05d5\u05ea \u05ea\u05d7\u05d9\u05dc\u05d4",
+    "\u05e0\u05d1\u05e0\u05d4 \u05dc\u05de\u05d2\u05dc\u05d9\u05dd",
+  ],
+} as const;
