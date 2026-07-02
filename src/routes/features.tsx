@@ -110,10 +110,7 @@ function FeaturesPage() {
         "group flex h-full flex-col rounded-[1.85rem] border border-border/70 bg-card/95 p-6 shadow-[var(--shadow-soft)] motion-safe:animate-in motion-safe:fade-in-0 motion-safe:slide-in-from-bottom-4 motion-safe:duration-500 motion-safe:delay-200 motion-safe:transition-all motion-safe:hover:-translate-y-1 motion-safe:hover:shadow-[var(--shadow-card)] motion-reduce:animate-none motion-reduce:hover:transform-none",
       render: () => (
         <>
-          <IconBadge
-            icon={Camera}
-            tint="bg-[oklch(0.96_0.04_160)] text-[oklch(0.45_0.13_165)]"
-          />
+          <IconBadge icon={Camera} tint="bg-[oklch(0.96_0.04_160)] text-[oklch(0.45_0.13_165)]" />
           <h3 className="mt-5 text-xl font-bold">{copy.cards.photoDiscovery.title}</h3>
           <p className="mt-3 text-sm leading-6 text-muted-foreground">
             {copy.cards.photoDiscovery.description}
@@ -128,10 +125,7 @@ function FeaturesPage() {
         "group flex h-full flex-col rounded-[1.85rem] border border-border/70 bg-card/95 p-6 shadow-[var(--shadow-soft)] motion-safe:animate-in motion-safe:fade-in-0 motion-safe:slide-in-from-bottom-4 motion-safe:duration-500 motion-safe:delay-300 motion-safe:transition-all motion-safe:hover:-translate-y-1 motion-safe:hover:shadow-[var(--shadow-card)] motion-reduce:animate-none motion-reduce:hover:transform-none",
       render: () => (
         <>
-          <IconBadge
-            icon={Theater}
-            tint="bg-[oklch(0.96_0.04_300)] text-[oklch(0.48_0.16_300)]"
-          />
+          <IconBadge icon={Theater} tint="bg-[oklch(0.96_0.04_300)] text-[oklch(0.48_0.16_300)]" />
           <h3 className="mt-5 text-lg font-bold">{copy.cards.modes.title}</h3>
           <div className="mt-3 flex flex-wrap gap-2">
             {copy.cards.modes.items.map((item) => (
@@ -156,10 +150,7 @@ function FeaturesPage() {
         "group flex h-full flex-col rounded-[1.85rem] border border-border/70 bg-card/95 p-6 shadow-[var(--shadow-soft)] motion-safe:animate-in motion-safe:fade-in-0 motion-safe:slide-in-from-bottom-4 motion-safe:duration-500 motion-safe:delay-[350ms] motion-safe:transition-all motion-safe:hover:-translate-y-1 motion-safe:hover:shadow-[var(--shadow-card)] motion-reduce:animate-none motion-reduce:hover:transform-none",
       render: () => (
         <>
-          <IconBadge
-            icon={Headphones}
-            tint="bg-[oklch(0.96_0.04_30)] text-[oklch(0.55_0.16_35)]"
-          />
+          <IconBadge icon={Headphones} tint="bg-[oklch(0.96_0.04_30)] text-[oklch(0.55_0.16_35)]" />
           <h3 className="mt-5 text-lg font-bold">{copy.cards.voices.title}</h3>
           <p className="mt-3 text-sm leading-6 text-muted-foreground">
             {copy.cards.voices.description}
@@ -174,10 +165,7 @@ function FeaturesPage() {
         "group flex h-full flex-col rounded-[1.85rem] border border-border/70 bg-card/95 p-6 shadow-[var(--shadow-soft)] motion-safe:animate-in motion-safe:fade-in-0 motion-safe:slide-in-from-bottom-4 motion-safe:duration-500 motion-safe:delay-[400ms] motion-safe:transition-all motion-safe:hover:-translate-y-1 motion-safe:hover:shadow-[var(--shadow-card)] motion-reduce:animate-none motion-reduce:hover:transform-none",
       render: () => (
         <>
-          <IconBadge
-            icon={Heart}
-            tint="bg-[oklch(0.96_0.04_95)] text-[oklch(0.54_0.14_88)]"
-          />
+          <IconBadge icon={Heart} tint="bg-[oklch(0.96_0.04_95)] text-[oklch(0.54_0.14_88)]" />
           <h3 className="mt-5 text-lg font-bold">{copy.cards.personalized.title}</h3>
           <p className="mt-3 text-sm leading-6 text-muted-foreground">
             {copy.cards.personalized.description}
@@ -265,7 +253,9 @@ function FeaturesPage() {
         </div>
 
         <div className="mt-18">
-          <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">{copy.modesSection.title}</h2>
+          <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
+            {copy.modesSection.title}
+          </h2>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">
             {copy.modesSection.body}
           </p>

@@ -520,7 +520,10 @@ async function readApiError(response: Response) {
   }
 }
 
-function toDemoUiError(error: unknown, copy: (typeof HOME_COPY)["en"]["demo"]): DemoUiError {
+function toDemoUiError(
+  error: unknown,
+  copy: (typeof HOME_COPY)[keyof typeof HOME_COPY]["demo"],
+): DemoUiError {
   if (error instanceof DemoRequestError) {
     if (error.code === "PUBLIC_DAILY_LIMIT_EXCEEDED") {
       return {
@@ -1675,8 +1678,8 @@ type Echo = {
   tagColor: string;
   focus: string;
   listenScript: string;
-  paragraphs: string[];
-  highlights: string[];
+  paragraphs: readonly string[];
+  highlights: readonly string[];
 };
 
 const ECHO_MODE_META: Record<
@@ -2726,7 +2729,12 @@ function AboutPlaceEcho() {
               <Button asChild size="lg" className="rounded-full px-6">
                 <Link to="/about">{copy.cta}</Link>
               </Button>
-              <Button asChild size="lg" variant="outline" className="rounded-full bg-background px-6">
+              <Button
+                asChild
+                size="lg"
+                variant="outline"
+                className="rounded-full bg-background px-6"
+              >
                 <a href={APP_URL}>{HOME_COPY[locale].finalCta.cta}</a>
               </Button>
             </div>
@@ -2756,7 +2764,18 @@ function AboutPlaceEcho() {
 function RoadmapPreview() {
   const { locale } = useLocale();
   const copy = locale === "he" ? HOME_ROADMAP_HE : HOME_COPY[locale].roadmap;
-  const cards = [
+  type RoadmapCard = {
+    title: string;
+    description: string;
+    badge: string;
+    featured: boolean;
+    icon: typeof WifiOff;
+    secondaryIcon?: typeof WifiOff;
+    tint: string;
+    badgeClass: string;
+  };
+
+  const cards: RoadmapCard[] = [
     {
       ...copy.items[0],
       icon: WifiOff,
@@ -2768,19 +2787,22 @@ function RoadmapPreview() {
       ...copy.items[1],
       icon: Users,
       tint: "bg-[oklch(0.95_0.04_220)] text-[oklch(0.48_0.14_230)]",
-      badgeClass: "bg-[oklch(0.95_0.04_220)] text-[oklch(0.4_0.12_235)] border-[oklch(0.9_0.03_220)]",
+      badgeClass:
+        "bg-[oklch(0.95_0.04_220)] text-[oklch(0.4_0.12_235)] border-[oklch(0.9_0.03_220)]",
     },
     {
       ...copy.items[2],
       icon: Languages,
       tint: "bg-[oklch(0.96_0.04_160)] text-[oklch(0.45_0.13_165)]",
-      badgeClass: "bg-[oklch(0.96_0.04_160)] text-[oklch(0.4_0.11_165)] border-[oklch(0.9_0.03_160)]",
+      badgeClass:
+        "bg-[oklch(0.96_0.04_160)] text-[oklch(0.4_0.11_165)] border-[oklch(0.9_0.03_160)]",
     },
     {
       ...copy.items[3],
       icon: Sparkles,
       tint: "bg-[oklch(0.96_0.04_95)] text-[oklch(0.54_0.14_88)]",
-      badgeClass: "bg-[oklch(0.96_0.04_95)] text-[oklch(0.47_0.13_88)] border-[oklch(0.91_0.03_95)]",
+      badgeClass:
+        "bg-[oklch(0.96_0.04_95)] text-[oklch(0.47_0.13_88)] border-[oklch(0.91_0.03_95)]",
     },
   ];
 
