@@ -54,6 +54,7 @@ import photoGpsScreen from "@/assets/photo-gps-screen.jpeg";
 import storyAudioScreen from "@/assets/story-audio-screen.jpeg";
 
 const APP_URL = "https://app.placeecho.io";
+const API_URL = "https://api.placeecho.io";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -340,7 +341,7 @@ const IS_DEMO_MODE =
   demoEnv.VITE_DEMO_MODE?.toString().toLowerCase() === "true";
 const PUBLIC_API_BASE_URL = IS_DEMO_MODE
   ? "http://127.0.0.1:8002/public/v1"
-  : ((import.meta.env.VITE_PUBLIC_API_BASE_URL as string | undefined) ?? `${APP_URL}/public/v1`);
+  : ((import.meta.env.VITE_PUBLIC_API_BASE_URL as string | undefined) ?? `${API_URL}/public/v1`);
 
 class DemoRequestError extends Error {
   code?: string;
