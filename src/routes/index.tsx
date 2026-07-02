@@ -1,8 +1,9 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   MapPin,
   Globe,
   Camera,
+  WifiOff,
   AudioLines,
   Languages,
   Play,
@@ -34,7 +35,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { HOME_ABOUT_HE, HOME_COMMUNITY_HE, HOME_COPY } from "@/lib/home-copy";
+import { HOME_ABOUT_HE, HOME_COMMUNITY_HE, HOME_COPY, HOME_ROADMAP_HE } from "@/lib/home-copy";
 import { useLocale, useLocalizedDocument } from "@/lib/locale";
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
@@ -95,6 +96,7 @@ function Index() {
         <Screenshots />
         <Community />
         <AboutPlaceEcho />
+        <RoadmapPreview />
         <FinalCTA />
       </main>
       <Footer />
@@ -2643,56 +2645,213 @@ function AboutPlaceEcho() {
   const { locale } = useLocale();
   const copy = locale === "he" ? HOME_ABOUT_HE : HOME_COPY[locale].about;
   const pillars = [
-    { icon: Sparkles, label: copy.pillars[0], tint: "bg-primary-soft text-primary" },
+    {
+      icon: Sparkles,
+      title: copy.pillars[0].title,
+      description: copy.pillars[0].description,
+      tint: "bg-primary-soft text-primary",
+    },
     {
       icon: AudioLines,
-      label: copy.pillars[1],
+      title: copy.pillars[1].title,
+      description: copy.pillars[1].description,
       tint: "bg-[oklch(0.96_0.04_160)] text-[oklch(0.45_0.13_165)]",
     },
     {
       icon: ShieldCheck,
-      label: copy.pillars[2],
+      title: copy.pillars[2].title,
+      description: copy.pillars[2].description,
       tint: "bg-[oklch(0.95_0.04_220)] text-[oklch(0.48_0.14_230)]",
     },
     {
       icon: Compass,
-      label: copy.pillars[3],
+      title: copy.pillars[3].title,
+      description: copy.pillars[3].description,
       tint: "bg-[oklch(0.96_0.04_95)] text-[oklch(0.54_0.14_88)]",
     },
   ];
   return (
-    <section className="bg-secondary/40 py-16 md:py-24">
-      <div className="mx-auto grid max-w-7xl gap-10 px-4 sm:px-6 md:grid-cols-[320px_1fr] md:items-center">
-        <div className="overflow-hidden rounded-3xl shadow-[var(--shadow-card)]">
-          <img
-            src={placeechoPostcard}
-            alt={copy.imageAlt}
-            loading="lazy"
-            width={1536}
-            height={1024}
-            className="h-full w-full object-cover"
-          />
+    <section className="relative overflow-hidden bg-[linear-gradient(180deg,var(--color-secondary)/0.38_0%,var(--color-background)_100%)] py-18 md:py-24">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 h-48 bg-[radial-gradient(circle_at_top,oklch(0.95_0.06_92),transparent_68%)] opacity-80"
+      />
+      <div className="relative mx-auto max-w-7xl px-4 sm:px-6">
+        <div className="grid gap-10 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:items-center">
+          <div className="relative overflow-hidden rounded-[2rem] border border-border/60 bg-card shadow-[var(--shadow-card)]">
+            <div className="absolute inset-x-5 top-5 z-10 flex items-center justify-between">
+              <span className="rounded-full bg-background/90 px-3 py-1 text-xs font-semibold text-foreground shadow-[var(--shadow-soft)]">
+                {copy.badge}
+              </span>
+              <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                PlaceEcho
+              </span>
+            </div>
+            <div className="absolute inset-x-5 bottom-5 z-10 rounded-3xl border border-white/40 bg-background/88 p-4 shadow-[var(--shadow-soft)] backdrop-blur">
+              <p className="text-sm font-medium leading-6 text-foreground/85">{copy.quote}</p>
+            </div>
+            <img
+              src={placeechoPostcard}
+              alt={copy.imageAlt}
+              loading="lazy"
+              width={1536}
+              height={1024}
+              className="h-full min-h-[420px] w-full object-cover"
+            />
+          </div>
+          <div>
+            <span className="inline-flex items-center gap-2 rounded-full bg-accent-soft px-3 py-1 text-xs font-semibold text-accent-foreground">
+              <Heart className="h-3.5 w-3.5" />
+              {copy.badge}
+            </span>
+            <h2 className="mt-5 text-3xl font-bold tracking-tight sm:text-4xl">{copy.title}</h2>
+            <p className="mt-4 max-w-2xl text-lg leading-8 text-foreground/85">{copy.lead}</p>
+            <div className="mt-5 max-w-2xl space-y-4 text-muted-foreground">
+              {copy.body.map((paragraph) => (
+                <p key={paragraph}>{paragraph}</p>
+              ))}
+            </div>
+            <div className="mt-8 grid gap-3 sm:grid-cols-3">
+              {copy.stats.map((stat) => (
+                <div
+                  key={stat.label}
+                  className="rounded-3xl border border-border/70 bg-card/85 px-5 py-4 shadow-[var(--shadow-soft)]"
+                >
+                  <div className="text-2xl font-bold text-primary">{stat.value}</div>
+                  <div className="mt-1 text-sm text-muted-foreground">{stat.label}</div>
+                </div>
+              ))}
+            </div>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Button asChild size="lg" className="rounded-full px-6">
+                <Link to="/about">{copy.cta}</Link>
+              </Button>
+              <Button asChild size="lg" variant="outline" className="rounded-full bg-background px-6">
+                <a href={APP_URL}>{HOME_COPY[locale].finalCta.cta}</a>
+              </Button>
+            </div>
+          </div>
         </div>
-        <div>
-          <h2 className="text-3xl font-bold sm:text-4xl">{copy.title}</h2>
-          <div className="mt-4 max-w-2xl space-y-4 text-muted-foreground">
-            {copy.body.map((paragraph) => (
-              <p key={paragraph}>{paragraph}</p>
-            ))}
-          </div>
-          <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
-            {pillars.map((p) => (
+
+        <div className="mt-10 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {pillars.map((pillar) => (
+            <article
+              key={pillar.title}
+              className="rounded-[1.75rem] border border-border/70 bg-card/92 p-5 shadow-[var(--shadow-soft)]"
+            >
+              <span className={cn("grid h-12 w-12 place-items-center rounded-2xl", pillar.tint)}>
+                <pillar.icon className="h-5 w-5" />
+              </span>
+              <h3 className="mt-4 text-base font-semibold text-foreground">{pillar.title}</h3>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">{pillar.description}</p>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ---------- Roadmap ---------- */
+function RoadmapPreview() {
+  const { locale } = useLocale();
+  const copy = locale === "he" ? HOME_ROADMAP_HE : HOME_COPY[locale].roadmap;
+  const cards = [
+    {
+      ...copy.items[0],
+      icon: WifiOff,
+      secondaryIcon: Camera,
+      tint: "bg-primary-soft text-primary",
+      badgeClass: "bg-primary/12 text-primary border-primary/15",
+    },
+    {
+      ...copy.items[1],
+      icon: Users,
+      tint: "bg-[oklch(0.95_0.04_220)] text-[oklch(0.48_0.14_230)]",
+      badgeClass: "bg-[oklch(0.95_0.04_220)] text-[oklch(0.4_0.12_235)] border-[oklch(0.9_0.03_220)]",
+    },
+    {
+      ...copy.items[2],
+      icon: Languages,
+      tint: "bg-[oklch(0.96_0.04_160)] text-[oklch(0.45_0.13_165)]",
+      badgeClass: "bg-[oklch(0.96_0.04_160)] text-[oklch(0.4_0.11_165)] border-[oklch(0.9_0.03_160)]",
+    },
+    {
+      ...copy.items[3],
+      icon: Sparkles,
+      tint: "bg-[oklch(0.96_0.04_95)] text-[oklch(0.54_0.14_88)]",
+      badgeClass: "bg-[oklch(0.96_0.04_95)] text-[oklch(0.47_0.13_88)] border-[oklch(0.91_0.03_95)]",
+    },
+  ];
+
+  return (
+    <section id="product-roadmap" className="relative overflow-hidden py-18 md:py-24">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 h-56 bg-[radial-gradient(circle_at_top,oklch(0.97_0.05_92),transparent_70%)] opacity-70"
+      />
+      <div className="relative mx-auto max-w-7xl px-4 sm:px-6">
+        <div className="mx-auto max-w-3xl text-center">
+          <span className="inline-flex items-center gap-2 rounded-full bg-accent-soft px-3 py-1 text-xs font-semibold text-accent-foreground">
+            <Sparkles className="h-3.5 w-3.5" />
+            {copy.eyebrow}
+          </span>
+          <h2 className="mt-5 text-3xl font-bold tracking-tight sm:text-4xl">{copy.title}</h2>
+          <p className="mt-4 text-base leading-7 text-muted-foreground sm:text-lg">
+            {copy.subtitle}
+          </p>
+        </div>
+
+        <div className="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+          {cards.map((card, index) => (
+            <article
+              key={card.title}
+              className={cn(
+                "group relative flex h-full flex-col overflow-hidden rounded-[1.9rem] border border-border/70 bg-card/95 p-6 shadow-[var(--shadow-soft)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[var(--shadow-card)]",
+                index === 0 &&
+                  "border-primary/20 bg-[linear-gradient(180deg,oklch(0.98_0.02_85),oklch(0.99_0.01_95))] shadow-[0_20px_45px_-22px_rgba(107,72,38,0.3)]",
+              )}
+            >
               <div
-                key={p.label}
-                className="flex flex-col items-center rounded-2xl border border-border bg-card p-4 text-center"
-              >
-                <span className={cn("grid h-12 w-12 place-items-center rounded-2xl", p.tint)}>
-                  <p.icon className="h-5 w-5" />
+                aria-hidden
+                className={cn(
+                  "pointer-events-none absolute inset-x-0 top-0 h-24 opacity-0 transition-opacity duration-300 group-hover:opacity-100",
+                  index === 0
+                    ? "bg-[radial-gradient(circle_at_top,rgba(185,129,60,0.16),transparent_72%)]"
+                    : "bg-[radial-gradient(circle_at_top,rgba(120,110,90,0.08),transparent_72%)]",
+                )}
+              />
+              <div className="relative flex items-start justify-between gap-4">
+                <div className="flex items-center gap-2">
+                  <span className={cn("grid h-12 w-12 place-items-center rounded-2xl", card.tint)}>
+                    <card.icon className="h-5 w-5" />
+                  </span>
+                  {card.secondaryIcon ? (
+                    <span className="grid h-10 w-10 place-items-center rounded-2xl border border-border/70 bg-background/90 text-foreground/75 shadow-[var(--shadow-soft)]">
+                      <card.secondaryIcon className="h-4.5 w-4.5" />
+                    </span>
+                  ) : null}
+                </div>
+                <span
+                  className={cn(
+                    "rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]",
+                    card.badgeClass,
+                  )}
+                >
+                  {card.badge}
                 </span>
-                <span className="mt-2 text-xs font-semibold">{p.label}</span>
               </div>
-            ))}
-          </div>
+              <h3 className="mt-6 text-xl font-bold leading-tight text-foreground">{card.title}</h3>
+              <p className="mt-3 flex-1 text-sm leading-6 text-muted-foreground">
+                {card.description}
+              </p>
+            </article>
+          ))}
+        </div>
+
+        <div className="mx-auto mt-10 max-w-3xl text-center">
+          <p className="text-base leading-7 text-foreground/85">{copy.footer[0]}</p>
+          <p className="mt-3 text-sm leading-6 text-muted-foreground">{copy.footer[1]}</p>
         </div>
       </div>
     </section>
